@@ -10,7 +10,7 @@ public class LocalizerTest extends LinearOpMode {
     DcMotor rightPod;
     DcMotor lateralPod;
 
-    public void runOpMode() {
+    public void runOpMode () {
         leftPod = hardwareMap.get(DcMotor.class, "frontRight");
         rightPod = hardwareMap.get(DcMotor.class, "frontLeft");
         lateralPod = hardwareMap.get(DcMotor.class, "backLeft");
@@ -25,7 +25,7 @@ public class LocalizerTest extends LinearOpMode {
 
         waitForStart();
 
-        while (opModeIsActive()){
+        while (opModeIsActive()) {
             telemetry.addData("Left Pod", leftPod.getCurrentPosition());
             telemetry.addData("Right Pod", rightPod.getCurrentPosition());
             telemetry.addData("Lateral Pod", lateralPod.getCurrentPosition());
