@@ -20,9 +20,15 @@ public class LauncherTester extends DriveConstants{
         if (gamepad1.right_trigger > .1)
             flyWheelFunc.setState(LauncherEnums.States.MAX);
 
+        telemetry.addLine("Increase Speed hit y");
+        telemetry.addLine("Decrease Speed hit b");
+        telemetry.addLine("Set hit a");
+
         telemetry.addData("Power to set:", flyWheelFunc.getPowerSet());
         telemetry.addData("Current power:", flyWheel.getPower());
         telemetry.addData("Velocity: ", flyWheel.getVelocity());
+
+        telemetry.update();
 
     }
 }
