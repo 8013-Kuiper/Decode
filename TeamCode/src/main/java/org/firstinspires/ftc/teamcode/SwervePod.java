@@ -24,7 +24,7 @@ public class SwervePod {
         return motor;
     }
 
-    public double getPos(){
+    public double readAnalogInput(){
 
         return analogInput.getVoltage()/10;
     }
