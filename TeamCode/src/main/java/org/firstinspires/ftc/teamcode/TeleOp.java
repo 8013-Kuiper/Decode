@@ -26,10 +26,12 @@ public class TeleOp extends LinearOpMode {
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         intake = hardwareMap.get(DcMotor.class, "intake");
 
+        gate.setPosition(0);
+
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
 
-        launcher.setDirection(DcMotorSimple.Direction.REVERSE);
+//        launcher.setDirection(DcMotorSimple.Direction.REVERSE);
 
         launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -54,7 +56,7 @@ public class TeleOp extends LinearOpMode {
             if (gamepad1.a) {
                 gate.setPosition(1.0);
             } else if (gamepad1.b) {
-                gate.setPosition(0.0);
+                gate.setPosition(-0.3);
             }
 
             if (gamepad1.right_trigger > 0.1) {
