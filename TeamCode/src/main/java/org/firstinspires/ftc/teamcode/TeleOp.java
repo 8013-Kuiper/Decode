@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class TeleOp extends LinearOpMode {
     DcMotor frontLeft, frontRight, backLeft, backRight;
 
-    Servo gate;
+    Servo elevator;
     DcMotorEx launcher;
     DcMotor intake;
 
@@ -22,11 +22,11 @@ public class TeleOp extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
 
-        gate = hardwareMap.get(Servo.class, "gate");
+        elevator = hardwareMap.get(Servo.class, "gate");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         intake = hardwareMap.get(DcMotor.class, "intake");
 
-        gate.setPosition(0);
+        elevator.setPosition(0);
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -54,9 +54,9 @@ public class TeleOp extends LinearOpMode {
             backRight.setPower(backRightPower);
 
             if (gamepad1.a) {
-                gate.setPosition(1.0);
+                elevator.setPosition(1.0);
             } else if (gamepad1.b) {
-                gate.setPosition(-0.3);
+                elevator.setPosition(0);
             }
 
             if (gamepad1.right_trigger > 0.1) {
