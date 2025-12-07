@@ -26,7 +26,7 @@ public class TeleOp extends LinearOpMode {
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         intake = hardwareMap.get(DcMotor.class, "intake");
 
-        elevator.setPosition(0);
+        elevator.setPosition(0.5);
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -48,24 +48,33 @@ public class TeleOp extends LinearOpMode {
             double backLeftPower = drive - strafe + rotate;
             double backRightPower = drive + strafe - rotate;
 
-            frontLeft.setPower(frontLeftPower);
-            frontRight.setPower(frontRightPower);
-            backLeft.setPower(backLeftPower);
-            backRight.setPower(backRightPower);
-
-            if (gamepad1.a) {
-                elevator.setPosition(1.0);
-            } else if (gamepad1.b) {
-                elevator.setPosition(0);
+            if (gamepad1.right_bumper) {
+                frontLeft.setPower(frontLeftPower);
+                frontRight.setPower(frontRightPower);
+                backLeft.setPower(backLeftPower);
+                backRight.setPower(backRightPower);
+            } else {
+                frontLeft.setPower(0.5*frontLeftPower);
+                frontRight.setPower(0.5*frontRightPower);
+                backLeft.setPower(0.5*backLeftPower);
+                backRight.setPower(0.5*backRightPower);
             }
 
-            if (gamepad1.right_trigger > 0.1) {
-                launcher.setVelocity(6000 * gamepad1.right_trigger);
+            if (gamepad2.a) {
+                elevator.setPosition(1.0);
+            } else if (gamepad2.b) {
+                elevator.setPosition(0);
+            } else {
+                elevator.setPosition(0.5);
+            }
+
+            if (gamepad2.right_trigger > 0.1) {
+                launcher.setVelocity(6000 * gamepad2.right_trigger);
             } else {
                 launcher.setVelocity(0);
             }
 
-            if (gamepad1.dpad_down) {
+            if (gamepad2.dpad_down) {
                 intakeAction=true;
             }
 
@@ -78,9 +87,9 @@ public class TeleOp extends LinearOpMode {
                     intakeAction=false;
                 }
             } else {
-                if (gamepad1.left_trigger > 0.1) {
-                    intake.setPower(1.0);
-                } else if (gamepad1.left_bumper) {
+                if (gamepad2.left_trigger > 0.1) {
+                    intake.setPower(gamepad2.left_trigger);
+                } else if (gamepad2.left_bumper) {
                     intake.setPower(-1.0);
                 } else {
                     intake.setPower(0.0);
