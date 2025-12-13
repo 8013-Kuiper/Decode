@@ -3,17 +3,10 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous
-public class BlueAuto1 extends LinearOpMode {
+public class Auto extends LinearOpMode {
     DcMotor frontLeft, frontRight, backLeft, backRight;
-
-
-    Servo elevator;
-    DcMotorEx launcher;
-    DcMotor intake;
 
     public void runOpMode() {
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
@@ -21,16 +14,21 @@ public class BlueAuto1 extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
 
-        elevator = hardwareMap.get(Servo.class, "gate");
-        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
-
-        elevator.setPosition(0.5);
-
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
 
-        par0 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "backRight")));
+        waitForStart();
 
-        
+        frontLeft.setPower(0.5);
+        frontRight.setPower(0.5);
+        backLeft.setPower(0.5);
+        backRight.setPower(0.5);
+
+        sleep (500);
+
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
     }
 }

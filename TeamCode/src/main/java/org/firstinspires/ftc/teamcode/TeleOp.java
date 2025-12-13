@@ -48,7 +48,7 @@ public class TeleOp extends LinearOpMode {
             double backLeftPower = drive - strafe + rotate;
             double backRightPower = drive + strafe - rotate;
 
-            if (gamepad1.right_bumper) {
+            if (!gamepad1.right_bumper) {
                 frontLeft.setPower(frontLeftPower);
                 frontRight.setPower(frontRightPower);
                 backLeft.setPower(backLeftPower);
