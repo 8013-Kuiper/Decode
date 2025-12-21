@@ -60,21 +60,21 @@ public class TeleOp extends LinearOpMode {
                 backRight.setPower(0.5*backRightPower);
             }
 
-            if (gamepad2.a) {
+            if (gamepad1.a) {
                 elevator.setPosition(1.0);
-            } else if (gamepad2.b) {
+            } else if (gamepad1.b) {
                 elevator.setPosition(0);
             } else {
                 elevator.setPosition(0.5);
             }
 
-            if (gamepad2.right_trigger > 0.1) {
-                launcher.setVelocity(6000 * gamepad2.right_trigger);
+            if (gamepad1.right_trigger > 0.1) {
+                launcher.setVelocity(6000 * gamepad1.right_trigger);
             } else {
                 launcher.setVelocity(0);
             }
 
-            if (gamepad2.dpad_down) {
+            if (gamepad1.dpad_down) {
                 intakeAction=true;
             }
 
@@ -87,9 +87,9 @@ public class TeleOp extends LinearOpMode {
                     intakeAction=false;
                 }
             } else {
-                if (gamepad2.left_trigger > 0.1) {
-                    intake.setPower(gamepad2.left_trigger);
-                } else if (gamepad2.left_bumper) {
+                if (gamepad1.left_trigger > 0.1) {
+                    intake.setPower(gamepad1.left_trigger);
+                } else if (gamepad1.left_bumper) {
                     intake.setPower(-1.0);
                 } else {
                     intake.setPower(0.0);
