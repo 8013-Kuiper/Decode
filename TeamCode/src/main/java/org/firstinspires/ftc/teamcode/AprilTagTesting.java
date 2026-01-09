@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import static java.lang.Thread.sleep;
+
 import android.provider.Settings;
 
 import com.bylazar.field.PanelsField;
@@ -35,10 +37,20 @@ public class AprilTagTesting extends OpMode {
     VisionPortal.Builder builder = new VisionPortal.Builder();
 
     Pose startPose;
+
+    boolean go = true;
     Pose currentPose;
-//    Pose targetPose = new Pose(64.5, 135, Math.toRadians(135));
-    Pose targetPose = new Pose(35, 60, Math.toRadians(135));
+    Pose targetPose = new Pose(60, 80, Math.toRadians(135));
+//    Pose targetPose = new Pose(35, 60, Math.toRadians(135));
 //    Pose targetPose = new Pose(0, 30, Math.toRadians(0));
+
+    final double SPEED_GAIN  =  0.02  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
+    final double STRAFE_GAIN =  0.015 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
+    final double TURN_GAIN   =  0.01  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
+
+    final double MAX_AUTO_SPEED = 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
+    final double MAX_AUTO_STRAFE= 0.5;   //  Clip the strafing speed to this max value (adjust for your robot)
+    final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)
 
     Follower follower;
 
@@ -71,10 +83,27 @@ public class AprilTagTesting extends OpMode {
         if (visionPortal != null && aprilTag != null) {
             visionPortal.setProcessorEnabled(aprilTag, true);
         }
+        try {
+            sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void loop() {
+
+    }
+
+    @Override
+    public void stop() {
+        if (visionPortal != null && aprilTag != null) {
+            visionPortal.setProcessorEnabled(aprilTag, false);
+            go=false;
+        }
+    }
+
+    private Pose getRobotPoseFromCamera(){
         // Update currentPose only when we have detections; otherwise keep last-known pose
         int detectionCount = 0;
         if (aprilTag != null && aprilTag.getDetections() != null) {
@@ -82,14 +111,10 @@ public class AprilTagTesting extends OpMode {
             if (detectionCount > 0) {
                 try {
                     currentPose = new Pose(
-                            72 + aprilTag.getDetections().get(0).robotPose.getPosition().x,
                             72 + aprilTag.getDetections().get(0).robotPose.getPosition().y,
+                            Math.abs(aprilTag.getDetections().get(0).robotPose.getPosition().x - 72),
                             aprilTag.getDetections().get(0).robotPose.getOrientation().getYaw(AngleUnit.RADIANS)
                     );
-//                    currentPose = new Pose(
-//                            aprilTag.getDetections().get(0).ftcPose.x,
-//                            aprilTag.getDetections().get(0).ftcPose.y,
-//                            aprilTag.getDetections().get(0).ftcPose.yaw);
                 } catch (Exception e) {
                     // if something unexpected happens reading the detection, keep the previous pose
                     telemetry.addData("AprilTag", "detection read error: %s", e.getMessage());
@@ -97,39 +122,6 @@ public class AprilTagTesting extends OpMode {
             }
         }
 
-        // Ensure follower exists before using it
-        if (follower == null) return;
-
-        // Give the follower the latest known pose before updating its internal controllers
-        if (currentPose != null) {
-            follower.setPose(currentPose);
-        }
-
-        follower.update();
-
-        if (!follower.isBusy()) {
-            follower.followPath(
-                    follower.pathBuilder()
-                            .addPath(new BezierLine(follower.getPose(), targetPose))
-                            .setLinearHeadingInterpolation(follower.getHeading(), targetPose.getHeading())
-                            .build()
-            );
-        }
-
-        // Provide telemetry to aid debugging on robot
-        telemetry.addData("Detections", detectionCount);
-        telemetry.addData("Pose", currentPose);
-        telemetry.addData("FollowerBusy", follower.isBusy());
-        telemetry.update();
-
-        PanelsField.INSTANCE.getField().moveCursor(currentPose.getX(), currentPose.getY());
-        PanelsField.INSTANCE.getField().update();
-    }
-
-    @Override
-    public void stop() {
-        if (visionPortal != null && aprilTag != null) {
-            visionPortal.setProcessorEnabled(aprilTag, false);
-        }
+        return currentPose;
     }
 }
