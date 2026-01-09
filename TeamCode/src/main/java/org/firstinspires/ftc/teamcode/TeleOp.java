@@ -3,14 +3,14 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
     DcMotor frontLeft, frontRight, backLeft, backRight;
 
-    Servo elevator;
+    Servo spindex;
+    Servo gate;
     DcMotorEx launcher;
     DcMotor intake;
 
@@ -22,11 +22,13 @@ public class TeleOp extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
 
-        elevator = hardwareMap.get(Servo.class, "gate");
+        spindex = hardwareMap.get(Servo.class, "rotate");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         intake = hardwareMap.get(DcMotor.class, "intake");
+        gate = hardwareMap.get(Servo.class, "gate");
 
-        elevator.setPosition(0.5);
+        spindex.setPosition(0.5);
+        gate.setPosition(1);
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -61,11 +63,17 @@ public class TeleOp extends LinearOpMode {
             }
 
             if (gamepad2.a) {
+<<<<<<< Updated upstream
                 elevator.setPosition(1.0);
             } else if (gamepad2.b) {
                 elevator.setPosition(0);
+=======
+                spindex.setPosition(1.0);
+            } else if (gamepad2.b) {
+                spindex.setPosition(0);
+>>>>>>> Stashed changes
             } else {
-                elevator.setPosition(0.5);
+                spindex.setPosition(0.5);
             }
 
             if (gamepad2.right_trigger > 0.1) {
@@ -74,19 +82,23 @@ public class TeleOp extends LinearOpMode {
                 launcher.setVelocity(0);
             }
 
+<<<<<<< Updated upstream
             if (gamepad2.dpad_down) {
                 intakeAction=true;
+=======
+            if (gamepad2.dpad_up){
+                gate.setPosition(0);
+            } else {
+                gate.setPosition(1);
+>>>>>>> Stashed changes
             }
 
-            if (intakeAction) {
-                intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                intake.setTargetPosition(500);
-                intake.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                intake.setPower(0.25);
-                if (!intake.isBusy()) {
-                    intakeAction=false;
-                }
+            if (gamepad2.left_trigger > 0.1) {
+                intake.setPower(gamepad2.left_trigger);
+            } else if (gamepad2.left_bumper) {
+                intake.setPower(-1.0);
             } else {
+<<<<<<< Updated upstream
                 if (gamepad2.left_trigger > 0.1) {
                     intake.setPower(gamepad2.left_trigger);
                 } else if (gamepad2.left_bumper) {
@@ -94,6 +106,9 @@ public class TeleOp extends LinearOpMode {
                 } else {
                     intake.setPower(0.0);
                 }
+=======
+                intake.setPower(0.0);
+>>>>>>> Stashed changes
             }
         }
     }
