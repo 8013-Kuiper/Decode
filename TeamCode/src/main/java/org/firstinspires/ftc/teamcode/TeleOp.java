@@ -63,15 +63,9 @@ public class TeleOp extends LinearOpMode {
             }
 
             if (gamepad2.a) {
-<<<<<<< Updated upstream
-                elevator.setPosition(1.0);
-            } else if (gamepad2.b) {
-                elevator.setPosition(0);
-=======
                 spindex.setPosition(1.0);
             } else if (gamepad2.b) {
                 spindex.setPosition(0);
->>>>>>> Stashed changes
             } else {
                 spindex.setPosition(0.5);
             }
@@ -82,15 +76,10 @@ public class TeleOp extends LinearOpMode {
                 launcher.setVelocity(0);
             }
 
-<<<<<<< Updated upstream
-            if (gamepad2.dpad_down) {
-                intakeAction=true;
-=======
             if (gamepad2.dpad_up){
                 gate.setPosition(0);
             } else {
                 gate.setPosition(1);
->>>>>>> Stashed changes
             }
 
             if (gamepad2.left_trigger > 0.1) {
@@ -98,17 +87,7 @@ public class TeleOp extends LinearOpMode {
             } else if (gamepad2.left_bumper) {
                 intake.setPower(-1.0);
             } else {
-<<<<<<< Updated upstream
-                if (gamepad2.left_trigger > 0.1) {
-                    intake.setPower(gamepad2.left_trigger);
-                } else if (gamepad2.left_bumper) {
-                    intake.setPower(-1.0);
-                } else {
-                    intake.setPower(0.0);
-                }
-=======
                 intake.setPower(0.0);
->>>>>>> Stashed changes
             }
         }
     }
