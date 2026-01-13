@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -13,6 +15,7 @@ public class TeleOp extends LinearOpMode {
     Servo gate;
     DcMotorEx launcher;
     DcMotor intake;
+    DcMotor turretRotatation;
 
     boolean intakeAction = false;
 
@@ -26,6 +29,8 @@ public class TeleOp extends LinearOpMode {
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         intake = hardwareMap.get(DcMotor.class, "intake");
         gate = hardwareMap.get(Servo.class, "gate");
+
+        turretRotatation = hardwareMap.get(DcMotor.class, "turret");
 
         spindex.setPosition(0.5);
         gate.setPosition(1);
@@ -76,7 +81,7 @@ public class TeleOp extends LinearOpMode {
                 launcher.setVelocity(0);
             }
 
-            if (gamepad2.dpad_up){
+            if (gamepad2.right_bumper){
                 gate.setPosition(0);
             } else {
                 gate.setPosition(1);
@@ -89,6 +94,8 @@ public class TeleOp extends LinearOpMode {
             } else {
                 intake.setPower(0.0);
             }
+
+            turretRotatation.setPower(0.25*gamepad2.left_stick_x);
         }
     }
 }
