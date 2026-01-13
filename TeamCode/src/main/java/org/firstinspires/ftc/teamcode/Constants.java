@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(10.4)
+            .mass(16.8)
             .forwardZeroPowerAcceleration(-45.56022)
             .lateralZeroPowerAcceleration(-86.73445)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.2, 0, 0.02, 0))
@@ -40,8 +40,8 @@ public class Constants {
             .rightPodY(-7.25)
             .strafePodX(-3)
             .leftEncoder_HardwareMapName("intake")
-            .rightEncoder_HardwareMapName("backRight")
-            .strafeEncoder_HardwareMapName("frontRight")
+            .rightEncoder_HardwareMapName("frontRight")
+            .strafeEncoder_HardwareMapName("backRight")
             .leftEncoderDirection(Encoder.FORWARD)
             .rightEncoderDirection(Encoder.REVERSE)
             .strafeEncoderDirection(Encoder.FORWARD);
