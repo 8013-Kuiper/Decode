@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class DeadWheelDebuggerr extends LinearOpMode {
     DcMotor zero;
