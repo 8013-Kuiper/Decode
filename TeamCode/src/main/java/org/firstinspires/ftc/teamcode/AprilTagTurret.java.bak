@@ -1,0 +1,152 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.CRServoImplEx;
+
+// FTC VisionPortal / AprilTag imports
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprialTagProcessor;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.List;
+
+@TeleOp(name = "AprilTagTurret")
+public class AprilTagTurret extends OpMode {
+    CRServo turretRotatation;
+
+    // VisionPortal & AprilTag processor
+    VisionPortal visionPortal;
+    AprilTagProcessor aprilTag;
+
+    // Target X (in pixels) that we want the AprilTag center to be at. Adjust to your camera resolution (e.g. width/2 for center).
+    final double TargetX = 320; // default for a 640px wide image; change to cameraWidth/2 if different
+
+    //PID Controller Variables
+    final double kP = 0.006; // starting gains - tune these on the robot
+    final double kD = 0.0;
+    final double kI = 0.0001;
+
+    // runtime & PID state
+    double previousError = 0.0;
+    double integral = 0.0;
+    double lastTime = 0.0;
+
+    // safety / limits
+    final double maxPower = 1.0;
+    final double integralLimit = 1000.0; // prevents integral windup; tune as needed
+
+    // The detection source for PID
+    private volatile Double latestTagCenterX = null;
+
+    // Camera/pipeline parameters - optional tuning
+    final double TAG_SIZE = 0.166; // meters (example)
+
+    @Override
+    public void init() {
+        turretRotatation = hardwareMap.get(CRServoImplEx.class, "turret");
+
+        // Create AprilTag processor with defaults. You can uncomment and set intrinsics if you have calibration.
+        aprilTag = new AprilTagProcessor.Builder()
+                // .setLensIntrinsics(fx, fy, cx, cy)
+                // .setTagSize(TAG_SIZE)
+                .build();
+
+        // Build the VisionPortal and attach the AprilTag processor. Choose webcam name as appropriate.
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+        builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+        builder.addProcessor(aprilTag);
+        // Optionally enable live view: builder.enableLiveView(true);
+        visionPortal = builder.build();
+
+        telemetry.addLine("AprilTagTurret initialized. Waiting for start...");
+    }
+
+    @Override
+    public void start() {
+        // reset timing for PID
+        lastTime = getRuntime();
+        previousError = 0.0;
+        integral = 0.0;
+
+        telemetry.addLine("AprilTagTurret started");
+    }
+
+    @Override
+    public void loop() {
+        // Poll the AprilTag processor for detections and update latestTagCenterX.
+        if (aprilTag != null) {
+            List<AprilTagDetection> detections = aprilTag.getDetections();
+            if (detections != null && !detections.isEmpty()) {
+                AprilTagDetection d = detections.get(0);
+                // detection.center is a Point-like object with x/y in pixels according to samples
+                latestTagCenterX = d.center.x;
+            } else {
+                latestTagCenterX = null;
+            }
+        }
+
+        double now = getRuntime();
+        double dt = now - lastTime;
+        if (dt <= 0) dt = 1e-3; // guard against divide by zero
+
+        // Read the most recent detected center X
+        Double centerX = latestTagCenterX;
+
+        if (centerX != null) {
+            double error = TargetX - centerX; // positive means tag is to the left of desired target
+
+            // integrate with anti-windup
+            integral += error * dt;
+            if (integral > integralLimit) integral = integralLimit;
+            if (integral < -integralLimit) integral = -integralLimit;
+
+            double derivative = (error - previousError) / dt;
+
+            double output = kP * error + kI * integral + kD * derivative;
+
+            // clamp output to servo power range
+            if (output > maxPower) output = maxPower;
+            if (output < -maxPower) output = -maxPower;
+
+            // Apply output to continuous rotation servo. Depending on your servo wiring and orientation
+            // you may need to invert the sign here.
+            turretRotatation.setPower(output);
+
+            // telemetry for tuning
+            telemetry.addData("centerX", centerX);
+            telemetry.addData("error", error);
+            telemetry.addData("P", kP * error);
+            telemetry.addData("I", kI * integral);
+            telemetry.addData("D", kD * derivative);
+            telemetry.addData("output", output);
+
+            previousError = error;
+        } else {
+            // no tag detected - stop turret (or choose a safe default behavior)
+            turretRotatation.setPower(0.0);
+            telemetry.addLine("No AprilTag detected");
+        }
+
+        lastTime = now;
+    }
+
+    @Override
+    public void stop() {
+        if (visionPortal != null) {
+            visionPortal.close();
+        }
+        turretRotatation.setPower(0.0);
+    }
+
+    /**
+     * External hook in case another component wants to push a detection center into this OpMode.
+     */
+    public void onTagDetected(double centerX) {
+        latestTagCenterX = centerX;
+    }
+}
