@@ -62,6 +62,7 @@ public class TeleOp extends LinearOpMode {
                 backRight.setPower(0.5*backRightPower);
             }
 
+
             if (gamepad2.a) {
                 spindex.setPosition(1.0);
             } else if (gamepad2.b) {
@@ -70,8 +71,8 @@ public class TeleOp extends LinearOpMode {
                 spindex.setPosition(0.5);
             }
 
-            if (gamepad2.right_trigger > 0.1) {
-                launcher.setVelocity(6000 * gamepad2.right_trigger);
+            if (gamepad1.right_trigger > 0.1) {
+                launcher.setVelocity(6000 * gamepad1.right_trigger);
             } else {
                 launcher.setVelocity(0);
             }
