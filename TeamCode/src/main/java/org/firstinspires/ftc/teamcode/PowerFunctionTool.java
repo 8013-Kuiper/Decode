@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -15,8 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TeleOp
+@Disabled
 public class PowerFunctionTool extends OpMode {
     MotorEx launcher;
+    Servo gate;
 
     int targetRPM = 3000;
 
@@ -34,18 +38,27 @@ public class PowerFunctionTool extends OpMode {
         initAprilTag();
 
         launcher = new MotorEx(hardwareMap, "launcher", 28, 6000);
+        gate = hardwareMap.get(Servo.class, "gate");
     }
     public void start() {
         // set the run mode
         launcher.setRunMode(MotorEx.RunMode.VelocityControl);
-        launcher.setVeloCoefficients(0.05, 0.01, 0.31);
+        launcher.setVeloCoefficients(20, 0, 0);
+        launcher.setFeedforwardCoefficients(0.35, 0.35);
+        gate.setPosition(1);
     }
 
     public void loop() {
         double distance = getDistance(detectRed);
-        double currentRPM = launcher.getVelocity()/28;
+        double currentRPM = launcher.getVelocity()/28*60;
 
-        launcher.setVelocity(targetRPM*28);
+        launcher.setVelocity(((double) targetRPM /60*28)+250);
+
+        if (gamepad1.right_bumper) {
+            gate.setPosition(0);
+        } else {
+            gate.setPosition(1);
+        }
 
         if (gamepad1.a) {
             detectRed = true;
@@ -68,6 +81,7 @@ public class PowerFunctionTool extends OpMode {
         telemetry.addData("Current RPM", currentRPM);
         telemetry.addData("Distance from tag", distance);
         telemetry.addData("Number of data points", Distance.size());
+        telemetry.addData("Detect red?", detectRed);
         telemetry.update();
     }
 
