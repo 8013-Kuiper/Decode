@@ -32,6 +32,8 @@ public class TeleOp extends LinearOpMode {
 
         turretRotatation = hardwareMap.get(DcMotor.class, "turret");
 
+        turretRotatation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         spindex.setPosition(0.5);
         gate.setPosition(1);
 
@@ -76,8 +78,8 @@ public class TeleOp extends LinearOpMode {
                 spindex.setPosition(0.5);
             }
 
-            if (gamepad1.right_trigger > 0.1) {
-                launcher.setVelocity(6000 * gamepad1.right_trigger);
+            if (gamepad2.right_trigger > 0.1) {
+                launcher.setVelocity(6000 * gamepad2.right_trigger);
             } else {
                 launcher.setVelocity(0);
             }
