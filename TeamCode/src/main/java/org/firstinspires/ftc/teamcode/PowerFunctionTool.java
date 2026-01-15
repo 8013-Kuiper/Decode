@@ -25,7 +25,7 @@ public class PowerFunctionTool extends OpMode {
 
     List<Double> Distance = new ArrayList<Double>();
     List<Integer> RPM = new ArrayList<Integer>();
-    String path = "/sdcard/FIRST/PowerFunction.csv";
+    String path = "FIRST/settings/PowerFunction.csv";
 
     boolean detectRed = false;
 
