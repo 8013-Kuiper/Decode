@@ -20,8 +20,8 @@ public class BlueAutoGoal extends LinearOpMode {
     Servo gate;
     DcMotorEx launcher;
 
-    private final Pose startPose = new Pose(23, 133, Math.toRadians(305));
-    private final Pose scorePose = new Pose(50,84, Math.toRadians(135));
+    private final Pose startPose = new Pose(27, 132, Math.toRadians(324));
+    private final Pose scorePose = new Pose(60,85, Math.toRadians(135));
 
     public void runOpMode() {
         gate = hardwareMap.get(Servo.class, "gate");
