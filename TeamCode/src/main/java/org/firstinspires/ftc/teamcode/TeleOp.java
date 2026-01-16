@@ -17,8 +17,6 @@ public class TeleOp extends LinearOpMode {
     DcMotor intake;
     DcMotor turretRotatation;
 
-    boolean intakeAction = false;
-
     public void runOpMode() {
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
