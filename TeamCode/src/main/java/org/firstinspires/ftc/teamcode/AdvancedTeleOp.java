@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -26,6 +27,22 @@ public class AdvancedTeleOp extends OpMode {
     DcMotor intake;
     DcMotor turretRotatation;
     int targetRPM;
+
+    //Turret Min Max values
+    int turretMinTicks = 0;
+    int turretMaxTicks = 0;
+
+    //Auto Turret Variables
+    double kP = 0.1;
+    double kI = 0;
+    double kD = 0;
+    double targetCenterX;
+
+    double integral = 0;
+    double lastError = 0;
+    ElapsedTime pidTimer = new ElapsedTime();
+
+    double MAX_POWER = 0.25;
 
     //April Tag Variables
     AprilTagProcessor aprilTag;
@@ -62,6 +79,7 @@ public class AdvancedTeleOp extends OpMode {
 
         turretRotatation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turretRotatation.setDirection(DcMotorSimple.Direction.REVERSE);
+        turretRotatation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -71,6 +89,8 @@ public class AdvancedTeleOp extends OpMode {
         launcher.setRunMode(MotorEx.RunMode.VelocityControl);
         launcher.setVeloCoefficients(20, 0, 0);
         launcher.setFeedforwardCoefficients(0.35, 0.35);
+
+        turretRotatation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         spindex.setPosition(0.5);
         gate.setPosition(1);
@@ -111,7 +131,13 @@ public class AdvancedTeleOp extends OpMode {
                 launcher.set(0);
             }
         } else {
-            launcher.setVelocity(((double) targetRPM /60*28)+250);
+            launcher.setVelocity(gamepad2.right_trigger * (((double) targetRPM /60*28)+250));
+        }
+
+        if (overrideTurret) {
+            turretRotatation.setPower(0.25 * gamepad2.left_stick_x);
+        } else {
+//            updateTurretPID(detectRed, turretRotatation);
         }
 
         if (gamepad2.a) {
@@ -134,10 +160,6 @@ public class AdvancedTeleOp extends OpMode {
             intake.setPower(-1.0);
         } else {
             intake.setPower(0.0);
-        }
-
-        if (overrideTurret) {
-            turretRotatation.setPower(0.25 * gamepad2.left_stick_x);
         }
 
         //Target Velocity Calculations
@@ -175,6 +197,12 @@ public class AdvancedTeleOp extends OpMode {
 
             previousFWstate = gamepad2.dpad_down;
 
+        //Encoder Reset Protection
+        if (gamepad2.start && gamepad1.start && gamepad1.a && gamepad2.y){
+            turretRotatation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            turretRotatation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+
         //Telemetry
         telemetry.addData("Distance", distance);
         telemetry.addData("Target RPM", targetRPM);
@@ -182,6 +210,7 @@ public class AdvancedTeleOp extends OpMode {
         telemetry.addData("Override Auto Turret Controls", overrideTurret);
         telemetry.addData("Override Auto Flywheel Controls", overrideFlywheel);
         telemetry.addData("Detecting Red?", detectRed);
+        telemetry.addData("Turret Ticks", turretRotatation.getCurrentPosition());
         telemetry.update();
     }
 
@@ -214,5 +243,68 @@ public class AdvancedTeleOp extends OpMode {
             }
         }
         return -1.0;
+    }
+
+    private double getCenterX(boolean isRed) {
+        List<AprilTagDetection> detections = aprilTag.getDetections();
+        if (isRed) {
+            for (AprilTagDetection det : detections) {
+                if (det.id == 24) {
+                    return det.center.x;
+                }
+            }
+        } else {
+            for (AprilTagDetection det : detections) {
+                if (det.id == 20) {
+                    return det.center.x;
+                }
+            }
+        }
+        return 0;
+    }
+
+    public void updateTurretPID(boolean isRed, DcMotor turret) {
+        double currentCenterX = getCenterX(isRed);
+        double error = targetCenterX - currentCenterX;
+
+        double dt = pidTimer.seconds();
+        pidTimer.reset();
+
+        // PID calculations
+        integral += error * dt;
+        double derivative = (error - lastError) / dt;
+        lastError = error;
+
+        double pidOutput = kP * error + kI * integral + kD * derivative;
+
+        // -----------------------------------------
+        // Determine desired turret direction
+        // -----------------------------------------
+
+        double desiredPower = pidOutput;
+
+        // Enforce max/min absolute power
+        if (desiredPower > MAX_POWER) desiredPower = MAX_POWER;
+        if (desiredPower < -MAX_POWER) desiredPower = -MAX_POWER;
+
+        int currentPos = turret.getCurrentPosition();
+
+        // -------------------------------------------------------------
+        // Limit protection:
+        // If desired motion would cross limits, rotate opposite instead
+        // -------------------------------------------------------------
+        if (desiredPower > 0 && currentPos >= turretMaxTicks) {
+            // trying to go beyond max -> wrap opposite
+            desiredPower = -MAX_POWER;
+            integral = 0;  // prevent integral windup
+        }
+
+        if (desiredPower < 0 && currentPos <= turretMinTicks) {
+            // trying to go beyond min -> wrap opposite
+            desiredPower = MAX_POWER;
+            integral = 0;
+        }
+
+        turret.setPower(desiredPower);
     }
 }
