@@ -22,7 +22,7 @@ public class PowerFunctionTool extends OpMode {
     MotorEx launcher;
     Servo gate;
 
-    int targetRPM = 3000;
+    int targetRPM;
 
     AprilTagProcessor aprilTag;
     VisionPortal visionPortal;
@@ -66,11 +66,17 @@ public class PowerFunctionTool extends OpMode {
             detectRed = false;
         }
 
-        if (gamepad1.right_trigger > 0.1) {
-            targetRPM += (int) (50*gamepad1.right_trigger);
-        } else if (gamepad1.left_trigger > 0.1) {
-            targetRPM -= (int) (50*gamepad1.left_trigger);
+        if (distance < 50) {
+            targetRPM = (int) (16*distance + 3205);
+        } else {
+            targetRPM = (int) (16 * distance + 3155);
         }
+
+//        if (gamepad1.right_trigger > 0.1) {
+//            targetRPM += (int) (50*gamepad1.right_trigger);
+//        } else if (gamepad1.left_trigger > 0.1) {
+//            targetRPM -= (int) (50*gamepad1.left_trigger);
+//        }
 
         if (gamepad2.y) {
             Distance.add(distance);
