@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@TeleOp
+@TeleOp (group = "Test")
 @Disabled
 public class PowerFunctionTool extends OpMode {
     MotorEx launcher;
