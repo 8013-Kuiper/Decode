@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
 @Autonomous (name = "Blue Side Goal")
 public class BlueAutoGoal extends LinearOpMode {
     private Follower follower;
@@ -19,17 +21,20 @@ public class BlueAutoGoal extends LinearOpMode {
 
     Servo gate;
     DcMotorEx launcher;
+    Servo spindex;
 
-    private final Pose startPose = new Pose(27, 132, Math.toRadians(324));
-    private final Pose scorePose = new Pose(60,85, Math.toRadians(135));
+    private final Pose startPose = new Pose(27, 132, Math.toRadians(-36));
+    private final Pose scorePose = new Pose(60,100, Math.toRadians(125));
 
     public void runOpMode() {
         gate = hardwareMap.get(Servo.class, "gate");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         turretRotatation = hardwareMap.get(DcMotor.class, "turret");
+        spindex = hardwareMap.get(Servo.class, "rotate");
 
         turretRotatation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        spindex.setPosition(0.5);
         gate.setPosition(1);
 
         launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -63,10 +68,10 @@ public class BlueAutoGoal extends LinearOpMode {
         sleep(500);
 //        gate.setPosition(0.5);
 
-        follower.followPath(alignPickup1);
-        while (follower.isBusy()){
-            sleep(50);
-            follower.update();
-        }
+//        follower.followPath(alignPickup1);
+//        while (follower.isBusy()){
+//            sleep(50);
+//            follower.update();
+//        }
     }
 }
