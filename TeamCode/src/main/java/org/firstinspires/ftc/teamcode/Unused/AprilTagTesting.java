@@ -2,16 +2,9 @@ package org.firstinspires.ftc.teamcode;
 
 import static java.lang.Thread.sleep;
 
-import android.provider.Settings;
-
-import com.bylazar.field.PanelsField;
-import com.bylazar.panels.Panels;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.ftc.FTCCoordinates;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.CoordinateSystem;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -22,9 +15,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
+@Disabled
 @TeleOp
 @Disabled
 public class AprilTagTesting extends OpMode {

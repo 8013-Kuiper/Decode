@@ -4,14 +4,17 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
+@Disabled
 @Autonomous
 public class Auto extends LinearOpMode {
     private Follower follower;
@@ -22,8 +25,8 @@ public class Auto extends LinearOpMode {
     Servo elevator;
     DcMotorEx launcher;
 
-    private final Pose startPose = new Pose(57, 135, Math.toRadians(270));
-    private final Pose scorePose = new Pose(60,84, Math.toRadians(135));
+    private final Pose startPose = new Pose(60, 50, Math.toRadians(0));
+    private final Pose scorePose = new Pose(60,80, Math.toRadians(0));
 
     public void runOpMode() {
         elevator = hardwareMap.get(Servo.class, "gate");
@@ -50,19 +53,6 @@ public class Auto extends LinearOpMode {
 
         follower.followPath(shootPreload);
 
-        while (follower.isBusy()){
-            sleep(50);
-            follower.update();
-        }
-
-        launcher.setPower(1);
-        elevator.setPosition(0);
-        sleep(2500);
-        elevator.setPosition(1);
-        sleep(500);
-        elevator.setPosition(0.5);
-
-        follower.followPath(henryIsALoser);
         while (follower.isBusy()){
             sleep(50);
             follower.update();
