@@ -69,27 +69,27 @@ public class BlueAutoGoal extends LinearOpMode {
 
         waitForStart();
 
-//        follower.followPath(shootPreload);
-//
-//        while (follower.isBusy()){
-//            sleep(50);
-//            follower.update();
-//        }
+        follower.followPath(shootPreload);
 
-//        double distance = -1;
-//        while (distance == -1) {
-//            distance = getDistance(false);
-//            if (distance < 50) {
-//                targetRPM = (int) (16 * distance + 3205);
-//            } else {
-//                targetRPM = (int) (16 * distance + 3155);
-//            }
-//            telemetry.addData("distance", distance);
-//            telemetry.addData("target RPM", targetRPM);
-//            telemetry.update();
-//        }
+        while (follower.isBusy()){
+            sleep(50);
+            follower.update();
+        }
 
-//        launcher.setVelocity((((double) targetRPM /60*28)-750));
+        double distance = -1;
+        while (distance == -1) {
+            distance = getDistance(false);
+            if (distance < 50) {
+                targetRPM = (int) (16 * distance + 3205);
+            } else {
+                targetRPM = (int) (16 * distance + 3155);
+            }
+            telemetry.addData("distance", distance);
+            telemetry.addData("target RPM", targetRPM);
+            telemetry.update();
+        }
+
+        launcher.setVelocity((((double) targetRPM /60*28)-750));
         sleep (1250);
         gate.setPosition(0);
         sleep (150);
@@ -97,6 +97,12 @@ public class BlueAutoGoal extends LinearOpMode {
         sleep(500);
         spindex.setPosition(1);
         sleep(900);
+
+        follower.followPath(alignPickup1);
+        while (follower.isBusy()){
+            sleep(50);
+            follower.update();
+        }
     }
 
     private void initAprilTag() {
@@ -106,7 +112,6 @@ public class BlueAutoGoal extends LinearOpMode {
         // Create the vision portal the easy way.
         visionPortal = VisionPortal.easyCreateWithDefaults(
                 hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
-
     }
 
     private double getDistance(boolean isRed) {
