@@ -30,7 +30,7 @@ public class AdvancedTeleOp extends OpMode {
 
     //Turret Min Max values
     int turretMinTicks = 0;
-    int turretMaxTicks = 0;
+    int turretMaxTicks = 260;
 
     //Auto Turret Variables
     double kP = 0.1;
@@ -80,6 +80,7 @@ public class AdvancedTeleOp extends OpMode {
         turretRotatation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turretRotatation.setDirection(DcMotorSimple.Direction.REVERSE);
         turretRotatation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretRotatation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -135,10 +136,12 @@ public class AdvancedTeleOp extends OpMode {
         }
 
         if (overrideTurret) {
-            turretRotatation.setPower(0.25 * gamepad2.left_stick_x);
+            turretRotatation.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            turretRotatation.setPower(0.25*gamepad2.left_stick_x);
         } else {
 //            updateTurretPID(detectRed, turretRotatation);
         }
+
 
         if (gamepad2.a) {
             spindex.setPosition(1.0);
@@ -173,7 +176,7 @@ public class AdvancedTeleOp extends OpMode {
         //Override Controls
             //Override Turret
             if (gamepad2.dpad_up && !previousOTstate && OTDebounceComplete) {
-//                overrideTurret = !overrideTurret;
+                overrideTurret = !overrideTurret;
                 OTDebounceComplete = false;
                 OTDebounceStartTime = System.currentTimeMillis();
             }
@@ -186,7 +189,7 @@ public class AdvancedTeleOp extends OpMode {
 
             //Override Flywheel
             if (gamepad2.dpad_down && !previousFWstate && FWDebounceComplete) {
-                overrideFlywheel = !overrideFlywheel;
+//                overrideFlywheel = !overrideFlywheel;
                 FWDebounceComplete = false;
                 FWDebounceStartTime = System.currentTimeMillis();
             }
