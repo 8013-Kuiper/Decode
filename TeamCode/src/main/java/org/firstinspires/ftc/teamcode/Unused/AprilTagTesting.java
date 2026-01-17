@@ -21,6 +21,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 @Disabled
 @TeleOp
+@Disabled
 public class AprilTagTesting extends OpMode {
     AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;

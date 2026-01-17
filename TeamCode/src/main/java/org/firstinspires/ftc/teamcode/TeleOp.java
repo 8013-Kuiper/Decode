@@ -17,8 +17,6 @@ public class TeleOp extends LinearOpMode {
     DcMotor intake;
     DcMotor turretRotatation;
 
-    boolean intakeAction = false;
-
     public void runOpMode() {
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
@@ -31,6 +29,8 @@ public class TeleOp extends LinearOpMode {
         gate = hardwareMap.get(Servo.class, "gate");
 
         turretRotatation = hardwareMap.get(DcMotor.class, "turret");
+
+        turretRotatation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         spindex.setPosition(0.5);
         gate.setPosition(1);
@@ -76,8 +76,8 @@ public class TeleOp extends LinearOpMode {
                 spindex.setPosition(0.5);
             }
 
-            if (gamepad1.right_trigger > 0.1) {
-                launcher.setVelocity(6000 * gamepad1.right_trigger);
+            if (gamepad2.right_trigger > 0.1) {
+                launcher.setVelocity(6000 * gamepad2.right_trigger);
             } else {
                 launcher.setVelocity(0);
             }
