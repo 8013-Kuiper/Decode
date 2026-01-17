@@ -97,6 +97,11 @@ public class BlueAutoGoal extends LinearOpMode {
         sleep(500);
         spindex.setPosition(1);
         sleep(900);
+        sleep (500);
+        gate.setPosition(0);
+        sleep (150);
+        gate.setPosition(1);
+        sleep(500);
 
         follower.followPath(alignPickup1);
         while (follower.isBusy()){
