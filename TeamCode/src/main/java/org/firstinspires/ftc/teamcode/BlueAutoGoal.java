@@ -36,7 +36,7 @@ public class BlueAutoGoal extends LinearOpMode {
     int targetRPM;
 
     private final Pose startPose = new Pose(27, 132, Math.toRadians(-36));
-    private final Pose scorePose = new Pose(60,100, Math.toRadians(125));
+    private final Pose scorePose = new Pose(58,84, Math.toRadians(125));
 
     public void runOpMode() {
         gate = hardwareMap.get(Servo.class, "gate");
@@ -75,7 +75,7 @@ public class BlueAutoGoal extends LinearOpMode {
             sleep(50);
             follower.update();
         }
-
+//
         double distance = -1;
         while (distance == -1) {
             distance = getDistance(false);
@@ -89,17 +89,24 @@ public class BlueAutoGoal extends LinearOpMode {
             telemetry.update();
         }
 
-        launcher.setVelocity((((double) targetRPM /60*28)-750));
+        launcher.setVelocity((((double) targetRPM /60*28)-1000));
+//        launcher.setVelocity((((double) targetRPM /60*28)+225);
         sleep (1250);
+        telemetry.addData("current RPM", launcher.getVelocity()/28*60);
+        telemetry.update();
         gate.setPosition(0);
-        sleep (150);
+        sleep (250);
         gate.setPosition(1);
         sleep(500);
         spindex.setPosition(1);
-        sleep(900);
-        sleep (500);
+        sleep(575);
+        spindex.setPosition(0.5);
+//        launcher.setVelocity((2300/60*28));
+        telemetry.addData("current RPM", launcher.getVelocity()/28*60);
+        telemetry.update();
+        sleep (1500);
         gate.setPosition(0);
-        sleep (150);
+        sleep (250);
         gate.setPosition(1);
         sleep(500);
 

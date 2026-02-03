@@ -36,7 +36,7 @@ public class RedAutoGoal extends LinearOpMode {
     int targetRPM;
 
     private final Pose startPose = new Pose(117, 132, Math.toRadians(-144));
-    private final Pose scorePose = new Pose(84,100, Math.toRadians(55));
+    private final Pose scorePose = new Pose(86,84, Math.toRadians(55));
 
     public void runOpMode() {
         gate = hardwareMap.get(Servo.class, "gate");
@@ -89,14 +89,15 @@ public class RedAutoGoal extends LinearOpMode {
             telemetry.update();
         }
 
-        launcher.setVelocity((((double) targetRPM /60*28)-750));
+        launcher.setVelocity((2600/60*28)-1000);
         sleep (1250);
         gate.setPosition(0);
         sleep (150);
         gate.setPosition(1);
         sleep(500);
         spindex.setPosition(1);
-        sleep(900);
+        sleep(850);
+        spindex.setPosition(0.5);
         sleep (500);
         gate.setPosition(0);
         sleep (150);

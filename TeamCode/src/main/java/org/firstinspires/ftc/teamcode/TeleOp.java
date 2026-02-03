@@ -50,6 +50,7 @@ public class TeleOp extends LinearOpMode {
             double strafe = gamepad1.left_stick_x;
             double rotate = gamepad1.right_stick_x;
 
+
             double frontLeftPower = drive + strafe + rotate;
             double frontRightPower = drive - strafe - rotate;
             double backLeftPower = drive - strafe + rotate;
