@@ -1,13 +1,19 @@
 package org.firstinspires.ftc.teamcode;
 
 
+import com.bylazar.panels.Panels;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
+import com.bylazar.telemetry.JoinedTelemetry;
+import com.bylazar.telemetry.PanelsTelemetry;
 
 @TeleOp
 public class GoalTrack extends OpMode {
@@ -23,6 +29,7 @@ public class GoalTrack extends OpMode {
     DcMotor turretRotation;
     double angle;
 
+    TelemetryManager Telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
     public void init () {
         follower = Constants.createFollower(hardwareMap);
@@ -52,9 +59,11 @@ public class GoalTrack extends OpMode {
     public void loop() {
         if (detectBlue) {
             angle = Math.atan((currentPose.getX() - blueGoal.getX())/(currentPose.getY()) - blueGoal.getY());
+        } else if (!detectBlue){
+            angle = Math.atan((currentPose.getX() - blueGoal.getX())/(currentPose.getY()) - blueGoal.getY());
         }
 
-        turretRotation.setTargetPosition((int) ((angle - follower.getPose().getHeading())/TicksPerDeg));
+        turretRotation.setTargetPosition((int) ((Math.toDegrees(angle - follower.getPose().getHeading()))/TicksPerDeg));
 
         follower.update();
         currentPose = follower.getPose();
@@ -64,5 +73,14 @@ public class GoalTrack extends OpMode {
                 gamepad1.right_stick_x);
 
         turretRotation.setPower(0.25);
+
+        if (gamepad1.a){
+            detectBlue = !detectBlue;
+        }
+
+
+        Telemetry.addData("angle", angle);
+        Telemetry.addData("detect blue?", detectBlue);
+        Telemetry.update(telemetry);
     }
 }
