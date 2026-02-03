@@ -44,7 +44,7 @@ public class Constants {
             .strafeEncoder_HardwareMapName("backRight")
             .leftEncoderDirection(Encoder.FORWARD)
             .rightEncoderDirection(Encoder.REVERSE)
-            .strafeEncoderDirection(Encoder.FORWARD);
+            .strafeEncoderDirection(Encoder.REVERSE);
 
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 0.8, 0.75);

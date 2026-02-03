@@ -27,16 +27,17 @@ public class AdvancedTeleOp extends OpMode {
     DcMotor intake;
     DcMotor turretRotatation;
     int targetRPM;
+    double distance = -1;
 
     //Turret Min Max values
-    int turretMinTicks = 0;
-    int turretMaxTicks = 260;
+    int turretMinTicks = -833;
+    int turretMaxTicks = 0;
 
     //Auto Turret Variables
-    double kP = 0.1;
+    double kP = 1;
     double kI = 0;
-    double kD = 0;
-    double targetCenterX;
+    double kD = 0.5;
+    double targetCenterX = 275;
 
     double integral = 0;
     double lastError = 0;
@@ -47,7 +48,7 @@ public class AdvancedTeleOp extends OpMode {
     //April Tag Variables
     AprilTagProcessor aprilTag;
     VisionPortal visionPortal;
-    boolean detectRed = false;
+    boolean detectRed = true;
     boolean overrideFlywheel = false;
     boolean overrideTurret = true;
 
@@ -89,7 +90,7 @@ public class AdvancedTeleOp extends OpMode {
     public void start() {
         launcher.setRunMode(MotorEx.RunMode.VelocityControl);
         launcher.setVeloCoefficients(20, 0, 0);
-        launcher.setFeedforwardCoefficients(0.35, 0.35);
+        launcher.setFeedforwardCoefficients(0.35, 0.5);
 
         turretRotatation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -125,6 +126,10 @@ public class AdvancedTeleOp extends OpMode {
             detectRed = false;
         }
 
+        if (distance == -1){
+            gamepad2.rumble(50);
+        }
+
         if (overrideFlywheel) {
             if (gamepad2.right_trigger > 0.1) {
                 launcher.set(gamepad2.right_trigger);
@@ -132,16 +137,11 @@ public class AdvancedTeleOp extends OpMode {
                 launcher.set(0);
             }
         } else {
-            launcher.setVelocity(gamepad2.right_trigger * (((double) targetRPM /60*28)+250));
+            launcher.setVelocity(gamepad2.right_trigger * (((double) targetRPM /60*28)+225));
         }
 
-        if (overrideTurret) {
-            turretRotatation.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            turretRotatation.setPower(0.25*gamepad2.left_stick_x);
-        } else {
-//            updateTurretPID(detectRed, turretRotatation);
-        }
-
+        turretRotatation.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        turretRotatation.setPower(0.25*gamepad2.left_stick_x);
 
         if (gamepad2.a) {
             spindex.setPosition(1.0);
@@ -166,30 +166,17 @@ public class AdvancedTeleOp extends OpMode {
         }
 
         //Target Velocity Calculations
-        double distance = getDistance(detectRed);
+
+        distance = getDistance(detectRed);
         if (distance < 50) {
-            targetRPM = (int) (16*distance + 3205);
+            targetRPM = (int) (16 * distance + 3205);
         } else {
             targetRPM = (int) (16 * distance + 3155);
         }
 
-        //Override Controls
-            //Override Turret
-            if (gamepad2.dpad_up && !previousOTstate && OTDebounceComplete) {
-                overrideTurret = !overrideTurret;
-                OTDebounceComplete = false;
-                OTDebounceStartTime = System.currentTimeMillis();
-            }
-
-            if (!OTDebounceComplete && (System.currentTimeMillis() - OTDebounceStartTime) >= debounceDelay) {
-                OTDebounceComplete = true;
-            }
-
-            previousOTstate = gamepad2.dpad_up;
-
             //Override Flywheel
             if (gamepad2.dpad_down && !previousFWstate && FWDebounceComplete) {
-//                overrideFlywheel = !overrideFlywheel;
+                overrideFlywheel = !overrideFlywheel;
                 FWDebounceComplete = false;
                 FWDebounceStartTime = System.currentTimeMillis();
             }
@@ -207,13 +194,17 @@ public class AdvancedTeleOp extends OpMode {
         }
 
         //Telemetry
-        telemetry.addData("Distance", distance);
+        telemetry.addData("Distance", getDistance(detectRed));
         telemetry.addData("Target RPM", targetRPM);
         telemetry.addData("Current RPM", launcher.getVelocity()/28*60);
         telemetry.addData("Override Auto Turret Controls", overrideTurret);
         telemetry.addData("Override Auto Flywheel Controls", overrideFlywheel);
         telemetry.addData("Detecting Red?", detectRed);
         telemetry.addData("Turret Ticks", turretRotatation.getCurrentPosition());
+        if (aprilTag.getDetections().size() > 0) {
+            telemetry.addData("Center X", getCenterX(detectRed));
+        }
+        telemetry.addData("fps", visionPortal.getFps());
         telemetry.update();
     }
 
@@ -245,7 +236,7 @@ public class AdvancedTeleOp extends OpMode {
                 }
             }
         }
-        return -1.0;
+        return 43;
     }
 
     private double getCenterX(boolean isRed) {
@@ -263,51 +254,53 @@ public class AdvancedTeleOp extends OpMode {
                 }
             }
         }
-        return 0;
+        return 320;
     }
 
     public void updateTurretPID(boolean isRed, DcMotor turret) {
-        double currentCenterX = getCenterX(isRed);
-        double error = targetCenterX - currentCenterX;
 
-        double dt = pidTimer.seconds();
-        pidTimer.reset();
 
-        // PID calculations
-        integral += error * dt;
-        double derivative = (error - lastError) / dt;
-        lastError = error;
+//        double currentCenterX = getCenterX(isRed);
+//        double error = targetCenterX - currentCenterX;
+//
+//        double dt = pidTimer.seconds();
+//        pidTimer.reset();
+//
+//        // PID calculations
+//        integral += error * dt;
+//        double derivative = (error - lastError) / dt;
+//        lastError = error;
+//
+//        double pidOutput = kP * error + kI * integral + kD * derivative;
+//
+//        // -----------------------------------------
+//        // Determine desired turret direction
+//        // -----------------------------------------
+//
+//        double desiredPower = pidOutput;
+//
+//        // Enforce max/min absolute power
+//        if (desiredPower > MAX_POWER) desiredPower = MAX_POWER;
+//        if (desiredPower < -MAX_POWER) desiredPower = -MAX_POWER;
+//
+//        int currentPos = turret.getCurrentPosition();
+//
+//        // -------------------------------------------------------------
+//        // Limit protection:
+//        // If desired motion would cross limits, rotate opposite instead
+//        // -------------------------------------------------------------
+//        if (desiredPower > 0 && currentPos >= turretMaxTicks) {
+//            // trying to go beyond max -> wrap opposite
+//            desiredPower = -MAX_POWER;
+//            integral = 0;  // prevent integral windup
+//        }
+//
+//        if (desiredPower < 0 && currentPos <= turretMinTicks) {
+//            // trying to go beyond min -> wrap opposite
+//            desiredPower = MAX_POWER;
+//            integral = 0;
+//        }
 
-        double pidOutput = kP * error + kI * integral + kD * derivative;
-
-        // -----------------------------------------
-        // Determine desired turret direction
-        // -----------------------------------------
-
-        double desiredPower = pidOutput;
-
-        // Enforce max/min absolute power
-        if (desiredPower > MAX_POWER) desiredPower = MAX_POWER;
-        if (desiredPower < -MAX_POWER) desiredPower = -MAX_POWER;
-
-        int currentPos = turret.getCurrentPosition();
-
-        // -------------------------------------------------------------
-        // Limit protection:
-        // If desired motion would cross limits, rotate opposite instead
-        // -------------------------------------------------------------
-        if (desiredPower > 0 && currentPos >= turretMaxTicks) {
-            // trying to go beyond max -> wrap opposite
-            desiredPower = -MAX_POWER;
-            integral = 0;  // prevent integral windup
-        }
-
-        if (desiredPower < 0 && currentPos <= turretMinTicks) {
-            // trying to go beyond min -> wrap opposite
-            desiredPower = MAX_POWER;
-            integral = 0;
-        }
-
-        turret.setPower(desiredPower);
+//        return desiredPower;
     }
 }
