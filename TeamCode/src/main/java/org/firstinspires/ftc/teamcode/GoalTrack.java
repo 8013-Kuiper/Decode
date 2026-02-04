@@ -63,7 +63,7 @@ public class GoalTrack extends OpMode {
             angle = Math.atan((currentPose.getX() - blueGoal.getX())/(currentPose.getY()) - blueGoal.getY());
         }
 
-        turretRotation.setTargetPosition((int) ((Math.toDegrees(angle - follower.getPose().getHeading()))/TicksPerDeg));
+        turretRotation.setTargetPosition((int) (180 - (Math.toDegrees(angle - follower.getPose().getHeading()))/TicksPerDeg));
 
         follower.update();
         currentPose = follower.getPose();
