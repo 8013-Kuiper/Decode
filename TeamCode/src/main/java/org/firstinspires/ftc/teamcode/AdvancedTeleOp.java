@@ -80,7 +80,7 @@ public class AdvancedTeleOp extends OpMode {
 
         turretRotatation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turretRotatation.setDirection(DcMotorSimple.Direction.REVERSE);
-        turretRotatation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        turretRotatation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretRotatation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);

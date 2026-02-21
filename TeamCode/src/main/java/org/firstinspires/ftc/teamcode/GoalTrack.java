@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 
+import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.bylazar.panels.Panels;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -14,20 +15,26 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp
 public class GoalTrack extends OpMode {
-    final double TicksPerDeg = 4.4546;
+    final double driveTeeth = 59;
+    final double drivenTeeth = 170;
+    final double TicksPerDeg = 537.7*(drivenTeeth/driveTeeth)/360;
 
-    Pose currentPose;
+    Pose currentPose = new Pose(72, 72, 0);
     Follower follower;
     boolean detectBlue=true;
 
-    Pose blueGoal = new Pose(6,133);
-    Pose redGoal = new Pose(144-6, 133 );
+    Pose blueGoal = new Pose(6,135);
+    Pose redGoal = new Pose(144-6, 135);
 
-    DcMotor turretRotation;
+    Motor turretRotation;
+    int target;
     double angle;
+    double angleCorrected;
+    double offset = 0;
 
     TelemetryManager Telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
@@ -36,51 +43,68 @@ public class GoalTrack extends OpMode {
         follower.setStartingPose(currentPose);
         follower.update();
 
-        turretRotation = hardwareMap.get(DcMotor.class, "turret");
-
-        turretRotation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        currentPose = new Pose(72,72, Math.toRadians(0));
+        turretRotation = new Motor(hardwareMap, "turret", Motor.GoBILDA.RPM_312);
+        turretRotation.setRunMode(Motor.RunMode.PositionControl);
+        turretRotation.setInverted(true);
+        turretRotation.setPositionCoefficient(-0.05);
+        turretRotation.setFeedforwardCoefficients(0.15,0.15);
+        turretRotation.resetEncoder();
+        turretRotation.setPositionTolerance(5);
     }
-
     @Override
     public void start() {
         if (detectBlue) {
-            angle = Math.atan((currentPose.getX() - blueGoal.getX())/(currentPose.getY()) - blueGoal.getY());
+            angle = Math.atan2((currentPose.getX() - blueGoal.getX()), (currentPose.getY()) - blueGoal.getY());
         }
 
         follower.startTeleOpDrive();
-
-        turretRotation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        turretRotation.setTargetPosition((int) ((angle - follower.getPose().getHeading())/TicksPerDeg));
     }
 
     @Override
     public void loop() {
         if (detectBlue) {
-            angle = Math.atan((currentPose.getX() - blueGoal.getX())/(currentPose.getY()) - blueGoal.getY());
+            angle = Math.atan2(blueGoal.getY() - currentPose.getY(), currentPose.getX() - blueGoal.getX());
         } else if (!detectBlue){
-            angle = Math.atan((currentPose.getX() - blueGoal.getX())/(currentPose.getY()) - blueGoal.getY());
+            angle = Math.atan2(redGoal.getY() - currentPose.getY(), currentPose.getX() - redGoal.getX());
         }
 
-        turretRotation.setTargetPosition((int) (180 - (Math.toDegrees(angle - follower.getPose().getHeading()))/TicksPerDeg));
+        target = (int) ((180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading()))*TicksPerDeg);
+
+        angleCorrected = (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading()));
+        turretRotation.setTargetPosition((int) (target + offset));
+
+        if (angleCorrected > 360) {
+            offset -= 360*TicksPerDeg;
+            angleCorrected -= 360;
+        } else if (angleCorrected < -180) {
+            offset += 360*TicksPerDeg;
+            angleCorrected += 360;
+        } else {
+            turretRotation.setTargetPosition(target);
+        }
+
+        turretRotation.set(0.05);
 
         follower.update();
         currentPose = follower.getPose();
         follower.setTeleOpDrive(
                 -gamepad1.left_stick_y,
-                gamepad1.left_stick_x,
-                gamepad1.right_stick_x);
+                -gamepad1.left_stick_x,
+                -gamepad1.right_stick_x,
+                true);
 
-        turretRotation.setPower(0.25);
-
-        if (gamepad1.a){
+        if (gamepad1.a) {
             detectBlue = !detectBlue;
         }
 
-
-        Telemetry.addData("angle", angle);
+        Telemetry.addData("angle", Math.toDegrees(angle));
+        Telemetry.addData("target angle", (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading())));
         Telemetry.addData("detect blue?", detectBlue);
+        Telemetry.addData("target Pos", target);
+        Telemetry.addData("currentPos", turretRotation.getCurrentPosition());
+        Telemetry.addData("PosX", currentPose.getX());
+        Telemetry.addData("PosY", currentPose.getY());
+        Telemetry.addData("distance", follower.getPose().distanceFrom(blueGoal));
         Telemetry.update(telemetry);
     }
 }
