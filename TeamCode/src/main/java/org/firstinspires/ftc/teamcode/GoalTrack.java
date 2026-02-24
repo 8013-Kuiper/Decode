@@ -97,6 +97,8 @@ public class GoalTrack extends OpMode {
             detectBlue = !detectBlue;
         }
 
+        Constants.currentPose = currentPose;
+
         Telemetry.addData("angle", Math.toDegrees(angle));
         Telemetry.addData("target angle", (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading())));
         Telemetry.addData("detect blue?", detectBlue);
