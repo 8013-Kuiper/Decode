@@ -6,11 +6,14 @@ import com.bylazar.panels.Panels;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import com.bylazar.telemetry.JoinedTelemetry;
@@ -38,6 +41,8 @@ public class GoalTrack extends OpMode {
 
     TelemetryManager Telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
+    Limelight3A limelight;
+
     public void init () {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(currentPose);
@@ -50,6 +55,9 @@ public class GoalTrack extends OpMode {
         turretRotation.setFeedforwardCoefficients(0.15,0.15);
         turretRotation.resetEncoder();
         turretRotation.setPositionTolerance(5);
+
+        limelight = hardwareMap.get(Limelight3A.class, "camera");
+        limelight.pipelineSwitch(0);
     }
     @Override
     public void start() {
@@ -58,13 +66,14 @@ public class GoalTrack extends OpMode {
         }
 
         follower.startTeleOpDrive();
+        limelight.start();
     }
 
     @Override
     public void loop() {
         if (detectBlue) {
             angle = Math.atan2(blueGoal.getY() - currentPose.getY(), currentPose.getX() - blueGoal.getX());
-        } else if (!detectBlue){
+        } else {
             angle = Math.atan2(redGoal.getY() - currentPose.getY(), currentPose.getX() - redGoal.getX());
         }
 
@@ -98,6 +107,12 @@ public class GoalTrack extends OpMode {
         }
 
         Constants.currentPose = currentPose;
+
+        LLResult result = limelight.getLatestResult();
+        if (result.isValid()) {
+            Pose3D botpose = result.getBotpose();
+            Telemetry.addData("Botpose", botpose.toString());
+        }
 
         Telemetry.addData("angle", Math.toDegrees(angle));
         Telemetry.addData("target angle", (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading())));
