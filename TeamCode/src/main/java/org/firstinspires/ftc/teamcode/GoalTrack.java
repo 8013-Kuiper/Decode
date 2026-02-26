@@ -109,9 +109,21 @@ public class GoalTrack extends OpMode {
         Constants.currentPose = currentPose;
 
         LLResult result = limelight.getLatestResult();
-        if (result.isValid()) {
-            Pose3D botpose = result.getBotpose();
-            Telemetry.addData("Botpose", botpose.toString());
+        double robotYaw = Math.toDegrees(currentPose.getHeading());
+        limelight.updateRobotOrientation(robotYaw);
+        if (result != null && result.isValid()) {
+            Pose3D botpose_mt2 = result.getBotpose_MT2();
+            if (botpose_mt2 != null) {
+                double x = botpose_mt2.getPosition().x;
+                double y = botpose_mt2.getPosition().y;
+                Telemetry.addData("MT2 Location:", "(" + x + ", " + y + ")");
+                Telemetry.addData("Corrected MT2 Location:", "(" + (x + 72) + ", " + (y+72) + ")");
+//                currentPose = new Pose(x+72, y+72, Math.toRadians(robotYaw));
+            } else {
+                currentPose = follower.getPose();
+            }
+        } else {
+            currentPose = follower.getPose();
         }
 
         Telemetry.addData("angle", Math.toDegrees(angle));
