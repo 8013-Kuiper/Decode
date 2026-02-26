@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Unused;
 
+import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -30,6 +31,8 @@ public class PowerFunctionTool extends OpMode {
     AprilTagProcessor aprilTag;
     VisionPortal visionPortal;
 
+    List<Double> Distance = new ArrayList<>();
+    List<Double> RPM = new ArrayList<>();
 
     boolean detectRed = false;
     Follower follower;
@@ -93,54 +96,77 @@ public class PowerFunctionTool extends OpMode {
             targetRPM -= (int) (50*gamepad1.left_trigger);
         }
 
+        if (gamepad1.b) {
+            Distance.add(distance);
+            RPM.add((double) targetRPM);
+        }
+
+
         telemetry.addData("Target RPM", targetRPM);
         telemetry.addData("Current RPM", currentRPM);
         telemetry.addData("Distance from tag", distance);
         telemetry.addData("Detect red?", detectRed);
+        telemetry.addData("Equation", "y = " + calculateB(Distance, RPM) + "x + " + calculateA(Distance, RPM));
         telemetry.update();
     }
 
-//    public void stop() {
-//        try (FileWriter writer = new FileWriter(path, false)) {  // false = overwrite
-//            int max = Math.max(Distance.size(), RPM.size());
-//            for (int i = 0; i < max; i++) {
-//                String dist = (i < Distance.size()) ? String.valueOf(Distance.get(i)) : "";
-//                String rpmVal = (i < RPM.size()) ? String.valueOf(RPM.get(i)) : "";
-//                writer.append(dist).append(",").append(rpmVal).append("\n");
-//            }
-//        } catch (IOException e) {
-//            telemetry.addData("Error", e.toString());
-//            telemetry.update();
-//        }
-//    }
+    private double calculateA (List<Double> distance, List<Double> rpm) {
+        double sumx = 0;
+        double sumy = 0;
+        double sumxy = 0;
+        double sumx2 = 0;
+        double sumy2 = 0;
+        double n = distance.size();
 
-//    private void initAprilTag() {
-//        // Create the AprilTag processor the easy way.
-//        aprilTag = AprilTagProcessor.easyCreateWithDefaults();
-//
-//        // Create the vision portal the easy way.
-//        visionPortal = VisionPortal.easyCreateWithDefaults(
-//                hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
-//
-//    }
+        double a = 0;
 
-//    private double getDistance(boolean isRed) {
-//        List<AprilTagDetection> detections = aprilTag.getDetections();
-//        if (isRed) {
-//            for (AprilTagDetection det : detections) {
-//                if (det.id == 24) {
-//                    // compute Euclidean distance from tag pose translation (meters)
-//                    return det.ftcPose.range;
-//                }
-//            }
-//        } else {
-//            for (AprilTagDetection det : detections) {
-//                if (det.id == 20) {
-//                    // compute Euclidean distance from tag pose translation (meters)
-//                    return det.ftcPose.range;
-//                }
-//            }
-//        }
-//        return -1.0;
-//    }
+        for (int i=0; i<distance.size(); i++) {
+            sumx += distance.get(i);
+        }
+        for (int i=0; i<rpm.size(); i++) {
+            sumy += rpm.get(i);
+        }
+
+        for (int i=0; i<distance.size();i++) {
+            sumxy += distance.get(i) * rpm.get(i);
+        }
+        for (int i=0; i<distance.size(); i++) {
+            sumx2 += distance.get(i) * distance.get(0);
+        }
+        for (int i=0; i<rpm.size(); i++) {
+            sumy2 += rpm.get(i) * rpm.get(i);
+        }
+
+        return ((sumy*sumx2) - (sumx*sumxy))/((n*sumx2) - (sumx*sumx));
+    }
+
+    private double calculateB (List<Double> distance, List<Double> rpm) {
+        double sumx = 0;
+        double sumy = 0;
+        double sumxy = 0;
+        double sumx2 = 0;
+        double sumy2 = 0;
+        double n = distance.size();
+
+        double a = 0;
+
+        for (int i=0; i<distance.size(); i++) {
+            sumx += distance.get(i);
+        }
+        for (int i=0; i<rpm.size(); i++) {
+            sumy += rpm.get(i);
+        }
+
+        for (int i=0; i<distance.size();i++) {
+            sumxy += distance.get(i) * rpm.get(i);
+        }
+        for (int i=0; i<distance.size(); i++) {
+            sumx2 += distance.get(i) * distance.get(0);
+        }
+        for (int i=0; i<rpm.size(); i++) {
+            sumy2 += rpm.get(i) * rpm.get(i);
+        }
+
+        return ((n*sumxy) - (sumx*sumy))/((n*sumx2) - (sumx*sumx));
+    }
 }
