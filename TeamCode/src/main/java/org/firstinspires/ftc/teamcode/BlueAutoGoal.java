@@ -23,7 +23,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
-@Autonomous (name = "Blue Side Goal")
+@Autonomous (name = "IN PROGRESS: Blue Side Goal")
 public class BlueAutoGoal extends LinearOpMode {
     AprilTagProcessor aprilTag;
     VisionPortal visionPortal;
