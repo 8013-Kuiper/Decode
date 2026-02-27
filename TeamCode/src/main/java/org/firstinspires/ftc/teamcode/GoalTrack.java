@@ -118,7 +118,7 @@ public class GoalTrack extends OpMode {
                 double y = botpose_mt2.getPosition().y;
                 Telemetry.addData("MT2 Location:", "(" + x + ", " + y + ")");
                 Telemetry.addData("Corrected MT2 Location:", "(" + (x + 72) + ", " + (y+72) + ")");
-//                currentPose = new Pose(x+72, y+72, Math.toRadians(robotYaw));
+                currentPose = new Pose(x+72, y+72, Math.toRadians(robotYaw));
             } else {
                 currentPose = follower.getPose();
             }
