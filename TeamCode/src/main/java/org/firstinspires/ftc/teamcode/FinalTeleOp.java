@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Disabled
+//@Disabled
 @TeleOp
 public class FinalTeleOp extends OpMode {
     //Turret constants
