@@ -8,6 +8,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -21,6 +22,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp
+@Disabled
 public class GoalTrack extends OpMode {
     final double driveTeeth = 59;
     final double drivenTeeth = 170;
@@ -37,7 +39,8 @@ public class GoalTrack extends OpMode {
     int target;
     double angle;
     double angleCorrected;
-    double offset = 0;
+    int count = 0;
+
 
     TelemetryManager Telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
@@ -77,20 +80,21 @@ public class GoalTrack extends OpMode {
             angle = Math.atan2(redGoal.getY() - currentPose.getY(), currentPose.getX() - redGoal.getX());
         }
 
-        target = (int) ((180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading()))*TicksPerDeg);
+        angleCorrected = (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading())) + count*360;
 
-        angleCorrected = (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading()));
-        turretRotation.setTargetPosition((int) (target + offset));
+        Telemetry.addData("angle corercted", angleCorrected);
 
-        if (angleCorrected > 360) {
-            offset -= 360*TicksPerDeg;
-            angleCorrected -= 360;
-        } else if (angleCorrected < -180) {
-            offset += 360*TicksPerDeg;
-            angleCorrected += 360;
-        } else {
-            turretRotation.setTargetPosition(target);
+        if (angleCorrected > 350) {
+            count --;
+        } else if (angleCorrected < -225) {
+            count ++;
         }
+
+        Telemetry.addData("count", count);
+
+        target = (int) (angleCorrected*TicksPerDeg);
+
+        turretRotation.setTargetPosition(target);
 
         turretRotation.set(0.05);
 
@@ -112,13 +116,14 @@ public class GoalTrack extends OpMode {
         double robotYaw = Math.toDegrees(currentPose.getHeading());
         limelight.updateRobotOrientation(robotYaw);
         if (result != null && result.isValid()) {
-            Pose3D botpose_mt2 = result.getBotpose_MT2();
+            Pose3D botpose_mt2 = result.getBotpose();
             if (botpose_mt2 != null) {
-                double x = botpose_mt2.getPosition().x;
-                double y = botpose_mt2.getPosition().y;
+                double x = 72 - (botpose_mt2.getPosition().y * 39.37) + 3;
+                double y = 72 + (-botpose_mt2.getPosition().x * 39.37) - 3;
                 Telemetry.addData("MT2 Location:", "(" + x + ", " + y + ")");
-                Telemetry.addData("Corrected MT2 Location:", "(" + (x + 72) + ", " + (y+72) + ")");
-                currentPose = new Pose(x+72, y+72, Math.toRadians(robotYaw));
+//                Telemetry.addData("Corrected MT2 Location:", "(" + (x + 72) + ", " + (y+72) + ")");
+                currentPose = new Pose(x, y, Math.toRadians(robotYaw));
+                follower.setPose(currentPose);
             } else {
                 currentPose = follower.getPose();
             }
@@ -126,8 +131,7 @@ public class GoalTrack extends OpMode {
             currentPose = follower.getPose();
         }
 
-        Telemetry.addData("angle", Math.toDegrees(angle));
-        Telemetry.addData("target angle", (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading())));
+        Telemetry.addData("target angle", angleCorrected);
         Telemetry.addData("detect blue?", detectBlue);
         Telemetry.addData("target Pos", target);
         Telemetry.addData("currentPos", turretRotation.getCurrentPosition());

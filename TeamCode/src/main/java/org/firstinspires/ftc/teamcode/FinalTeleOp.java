@@ -2,14 +2,19 @@ package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 //@Disabled
@@ -21,19 +26,19 @@ public class FinalTeleOp extends OpMode {
     final double TicksPerDeg = 537.7*(drivenTeeth/driveTeeth)/360;
 
     //TODO: Tune these values
-    final int turretMinDeg = -375;
-    final int turretMaxDeg = 180;
+    final int turretMinDeg = -225;
+    final int turretMaxDeg = 350;
 
     //Follower variables
-//    Pose currentPose = new Pose(72, 72, 0);
-    Pose currentPose = Constants.currentPose;
+    Pose currentPose = new Pose(72, 72, 0);
+//    Pose currentPose = Constants.currentPose;
     Follower follower;
-    boolean detectBlue=true;
+    boolean detectBlue = true;
     Pose blueGoal = new Pose(6,135);
     Pose redGoal = new Pose(144-6, 135);
 
     //Accessory Objects
-    Servo spindex;
+    Servo spin;
     Servo gate;
     MotorEx launcher;
     DcMotor intake;
@@ -43,13 +48,19 @@ public class FinalTeleOp extends OpMode {
     int target;
     double angle;
     double angleCorrected;
-    double offset = 0;
+    int count = 0;
     int targetRPM;
     double distance;
 
+    double offset = 0;
+
+    Limelight3A limelight;
+
+    TelemetryManager Telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+
     //Debounce variables
     boolean overrideFlywheel = false;
-    boolean overrideTurret = true;
+    boolean overrideTurret = false;
     final long debounceDelay = 200;
         // Override Turret
         boolean previousOTstate = false;
@@ -67,7 +78,12 @@ public class FinalTeleOp extends OpMode {
         follower.setStartingPose(currentPose);
         follower.update();
 
+        //Limelight
+        limelight = hardwareMap.get(Limelight3A.class, "camera");
+        limelight.pipelineSwitch(0);
+
         //Accessory initialization
+        turretRotation = new Motor(hardwareMap, "turret", Motor.GoBILDA.RPM_312);
         turretRotation.setRunMode(Motor.RunMode.PositionControl);
         turretRotation.setInverted(true);
         turretRotation.setPositionCoefficient(-0.05);
@@ -75,8 +91,9 @@ public class FinalTeleOp extends OpMode {
         turretRotation.resetEncoder();
         turretRotation.setPositionTolerance(5);
 
-        spindex = hardwareMap.get(Servo.class, "rotate");
+        spin = hardwareMap.get(Servo.class, "rotate");
         launcher = new MotorEx(hardwareMap, "launcher", 28, 6000);
+        launcher.setInverted(true);
         intake = hardwareMap.get(DcMotor.class, "intake");
         gate = hardwareMap.get(Servo.class, "gate");
     }
@@ -86,7 +103,7 @@ public class FinalTeleOp extends OpMode {
         launcher.setVeloCoefficients(20, 0, 0);
         launcher.setFeedforwardCoefficients(0.35, 0.5);
 
-        spindex.setPosition(0.5);
+        spin.setPosition(0.5);
         gate.setPosition(1);
 
         if (detectBlue) {
@@ -105,8 +122,27 @@ public class FinalTeleOp extends OpMode {
                 -gamepad1.left_stick_x,
                 -gamepad1.right_stick_x,
                 true);
-        //REPLACE FOR LIMELIGHT
+
         Constants.currentPose = currentPose;
+
+        LLResult result = limelight.getLatestResult();
+        double robotYaw = Math.toDegrees(currentPose.getHeading());
+        limelight.updateRobotOrientation(robotYaw);
+        if (result != null && result.isValid()) {
+            Pose3D botpose_mt2 = result.getBotpose();
+            if (botpose_mt2 != null) {
+                double x = 72 - (botpose_mt2.getPosition().y * 39.37) + 3;
+                double y = 72 + (-botpose_mt2.getPosition().x * 39.37) - 3;
+                Telemetry.addData("MT2 Location:", "(" + x + ", " + y + ")");
+//                Telemetry.addData("Corrected MT2 Location:", "(" + (x + 72) + ", " + (y+72) + ")");
+                currentPose = new Pose(x, y, botpose_mt2.getOrientation().getYaw(AngleUnit.RADIANS));
+                follower.setPose(currentPose);
+            } else {
+                currentPose = follower.getPose();
+            }
+        } else {
+            currentPose = follower.getPose();
+        }
 
         //Turret Control
         if (detectBlue) {
@@ -119,19 +155,20 @@ public class FinalTeleOp extends OpMode {
 
         target = (int) ((180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading()))*TicksPerDeg);
 
-        angleCorrected = (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading()));
-        turretRotation.setTargetPosition((int) (target + offset));
+        angleCorrected = (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading())) + count*360;
 
         if (!overrideTurret) {
-            if (angleCorrected > turretMaxDeg) {
-                offset -= 360 * TicksPerDeg;
-                angleCorrected -= 360;
-            } else if (angleCorrected < turretMinDeg) {
-                offset += 360 * TicksPerDeg;
-                angleCorrected += 360;
-            } else {
-                turretRotation.setTargetPosition(target);
+            if (angleCorrected > 350) {
+                count --;
+            } else if (angleCorrected < -225) {
+                count ++;
             }
+
+            Telemetry.addData("count", count);
+
+            target = (int) (angleCorrected*TicksPerDeg);
+
+            turretRotation.setTargetPosition(target);
 
             turretRotation.set(0.05);
         } else {
@@ -158,19 +195,15 @@ public class FinalTeleOp extends OpMode {
         }
 
         //Target Velocity Calculations
-        if (distance < 50) {
-            targetRPM = (int) (16 * distance + 3205);
-        } else {
-            targetRPM = (int) (16 * distance + 3155);
-        }
+        targetRPM = (int) (10.6 * distance + 3100);
 
         //Transfer Controls
         if (gamepad2.a) {
-            spindex.setPosition(1.0);
+            spin.setPosition(1.0);
         } else if (gamepad2.b) {
-            spindex.setPosition(0);
+            spin.setPosition(0);
         } else {
-            spindex.setPosition(0.5);
+            spin.setPosition(0.5);
         }
 
         if (gamepad2.right_bumper){
@@ -215,5 +248,10 @@ public class FinalTeleOp extends OpMode {
             }
 
             previousOTstate = gamepad2.dpad_up;
+
+        Telemetry.addData("current Pose", currentPose);
+        Telemetry.addData("RPM", launcher.getVelocity()/28*60);
+        Telemetry.addData("Override", overrideTurret);
+        Telemetry.update(telemetry);
     }
 }

@@ -7,6 +7,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -21,12 +22,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TeleOp (group = "Test")
-@Disabled
+//@Disabled
 public class PowerFunctionTool extends OpMode {
     MotorEx launcher;
     Servo gate;
 
-    int targetRPM;
+    DcMotor intake;
+    Servo spin;
+
+    int targetRPM = 0;
 
     AprilTagProcessor aprilTag;
     VisionPortal visionPortal;
@@ -48,7 +52,11 @@ public class PowerFunctionTool extends OpMode {
 //        initAprilTag();
 
         launcher = new MotorEx(hardwareMap, "launcher", 28, 6000);
+        launcher.setInverted(true);
         gate = hardwareMap.get(Servo.class, "gate");
+
+        spin = hardwareMap.get(Servo.class, "rotate");
+        intake = hardwareMap.get(DcMotor.class, "intake");
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(currentPose);
@@ -73,6 +81,24 @@ public class PowerFunctionTool extends OpMode {
             gate.setPosition(1);
         }
 
+        //Transfer Controls
+        if (gamepad1.a) {
+            spin.setPosition(1.0);
+        } else if (gamepad1.b) {
+            spin.setPosition(0);
+        } else {
+            spin.setPosition(0.5);
+        }
+
+        //Intake Controls
+        if (gamepad1.left_trigger > 0.1) {
+            intake.setPower(gamepad1.left_trigger);
+        } else if (gamepad1.left_bumper) {
+            intake.setPower(-1.0);
+        } else {
+            intake.setPower(0.0);
+        }
+
         if (gamepad1.a) {
             detectRed = true;
         } else if (gamepad1.b) {
@@ -84,6 +110,8 @@ public class PowerFunctionTool extends OpMode {
         } else {
             distance = follower.getPose().distanceFrom(blueGoal);
         }
+
+        follower.update();
 
 //        if (distance < 50) {
 //            targetRPM = (int) (16*distance + 3205);
