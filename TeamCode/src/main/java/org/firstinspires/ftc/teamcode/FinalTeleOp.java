@@ -25,7 +25,6 @@ public class FinalTeleOp extends OpMode {
     final double drivenTeeth = 170;
     final double TicksPerDeg = 537.7*(drivenTeeth/driveTeeth)/360;
 
-    //TODO: Tune these values
     final int turretMinDeg = -225;
     final int turretMaxDeg = 350;
 
@@ -88,7 +87,7 @@ public class FinalTeleOp extends OpMode {
         turretRotation.setInverted(true);
         turretRotation.setPositionCoefficient(-0.05);
         turretRotation.setFeedforwardCoefficients(0.15,0.15);
-        turretRotation.resetEncoder();
+//        turretRotation.resetEncoder();
         turretRotation.setPositionTolerance(5);
 
         spin = hardwareMap.get(Servo.class, "rotate");
