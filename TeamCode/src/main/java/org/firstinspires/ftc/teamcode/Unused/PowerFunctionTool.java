@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TeleOp (group = "Test")
-//@Disabled
+@Disabled
 public class PowerFunctionTool extends OpMode {
     MotorEx launcher;
     Servo gate;
