@@ -7,11 +7,15 @@ import com.pedropathing.ftc.FollowerBuilder;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
 import com.pedropathing.ftc.localization.Encoder;
 import com.pedropathing.ftc.localization.constants.ThreeWheelConstants;
+import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Constants {
+    public static Pose currentPose;
+    public static boolean detectBlue;
+
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(11.07)
             .forwardZeroPowerAcceleration(-45.56022)

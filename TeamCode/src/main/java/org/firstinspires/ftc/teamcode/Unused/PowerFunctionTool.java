@@ -1,12 +1,17 @@
 package org.firstinspires.ftc.teamcode.Unused;
 
+import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -17,28 +22,45 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TeleOp (group = "Test")
-@Disabled
+//@Disabled
 public class PowerFunctionTool extends OpMode {
     MotorEx launcher;
     Servo gate;
 
-    int targetRPM;
+    DcMotor intake;
+    Servo spin;
+
+    int targetRPM = 0;
 
     AprilTagProcessor aprilTag;
     VisionPortal visionPortal;
 
-    List<Double> Distance = new ArrayList<Double>();
-    List<Integer> RPM = new ArrayList<Integer>();
-    String path = "FIRST/settings/PowerFunction.csv";
+    List<Double> Distance = new ArrayList<>();
+    List<Double> RPM = new ArrayList<>();
 
     boolean detectRed = false;
+    Follower follower;
+    Pose currentPose = new Pose(72, 72, 0);
+
+    Pose blueGoal = new Pose(6,135);
+    Pose redGoal = new Pose(144-6, 135);
+
+    double distance = 0;
 
     @Override
     public void init() {
-        initAprilTag();
+//        initAprilTag();
 
         launcher = new MotorEx(hardwareMap, "launcher", 28, 6000);
+        launcher.setInverted(true);
         gate = hardwareMap.get(Servo.class, "gate");
+
+        spin = hardwareMap.get(Servo.class, "rotate");
+        intake = hardwareMap.get(DcMotor.class, "intake");
+
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(currentPose);
+        follower.update();
     }
     public void start() {
         // set the run mode
@@ -49,7 +71,6 @@ public class PowerFunctionTool extends OpMode {
     }
 
     public void loop() {
-        double distance = getDistance(detectRed);
         double currentRPM = launcher.getVelocity()/28*60;
 
         launcher.setVelocity(((double) targetRPM /60*28)+250);
@@ -60,78 +81,120 @@ public class PowerFunctionTool extends OpMode {
             gate.setPosition(1);
         }
 
+        //Transfer Controls
+        if (gamepad1.a) {
+            spin.setPosition(1.0);
+        } else if (gamepad1.b) {
+            spin.setPosition(0);
+        } else {
+            spin.setPosition(0.5);
+        }
+
+        //Intake Controls
+        if (gamepad1.left_trigger > 0.1) {
+            intake.setPower(gamepad1.left_trigger);
+        } else if (gamepad1.left_bumper) {
+            intake.setPower(-1.0);
+        } else {
+            intake.setPower(0.0);
+        }
+
         if (gamepad1.a) {
             detectRed = true;
         } else if (gamepad1.b) {
             detectRed = false;
         }
 
-        if (distance < 50) {
-            targetRPM = (int) (16*distance + 3205);
+        if (detectRed) {
+            distance = follower.getPose().distanceFrom(redGoal);
         } else {
-            targetRPM = (int) (16 * distance + 3155);
+            distance = follower.getPose().distanceFrom(blueGoal);
         }
 
-//        if (gamepad1.right_trigger > 0.1) {
-//            targetRPM += (int) (50*gamepad1.right_trigger);
-//        } else if (gamepad1.left_trigger > 0.1) {
-//            targetRPM -= (int) (50*gamepad1.left_trigger);
+        follower.update();
+
+//        if (distance < 50) {
+//            targetRPM = (int) (16*distance + 3205);
+//        } else {
+//            targetRPM = (int) (16 * distance + 3155);
 //        }
-
-        if (gamepad2.y) {
-            Distance.add(distance);
-            RPM.add(targetRPM);
+        if (gamepad1.right_trigger > 0.1) {
+            targetRPM += (int) (50*gamepad1.right_trigger);
+        } else if (gamepad1.left_trigger > 0.1) {
+            targetRPM -= (int) (50*gamepad1.left_trigger);
         }
+
+        if (gamepad1.b) {
+            Distance.add(distance);
+            RPM.add((double) targetRPM);
+        }
+
 
         telemetry.addData("Target RPM", targetRPM);
         telemetry.addData("Current RPM", currentRPM);
         telemetry.addData("Distance from tag", distance);
-        telemetry.addData("Number of data points", Distance.size());
         telemetry.addData("Detect red?", detectRed);
+        telemetry.addData("Equation", "y = " + calculateB(Distance, RPM) + "x + " + calculateA(Distance, RPM));
         telemetry.update();
     }
 
-    public void stop() {
-        try (FileWriter writer = new FileWriter(path, false)) {  // false = overwrite
-            int max = Math.max(Distance.size(), RPM.size());
-            for (int i = 0; i < max; i++) {
-                String dist = (i < Distance.size()) ? String.valueOf(Distance.get(i)) : "";
-                String rpmVal = (i < RPM.size()) ? String.valueOf(RPM.get(i)) : "";
-                writer.append(dist).append(",").append(rpmVal).append("\n");
-            }
-        } catch (IOException e) {
-            telemetry.addData("Error", e.toString());
-            telemetry.update();
+    private double calculateA (List<Double> distance, List<Double> rpm) {
+        double sumx = 0;
+        double sumy = 0;
+        double sumxy = 0;
+        double sumx2 = 0;
+        double sumy2 = 0;
+        double n = distance.size();
+
+        double a = 0;
+
+        for (int i=0; i<distance.size(); i++) {
+            sumx += distance.get(i);
         }
+        for (int i=0; i<rpm.size(); i++) {
+            sumy += rpm.get(i);
+        }
+
+        for (int i=0; i<distance.size();i++) {
+            sumxy += distance.get(i) * rpm.get(i);
+        }
+        for (int i=0; i<distance.size(); i++) {
+            sumx2 += distance.get(i) * distance.get(0);
+        }
+        for (int i=0; i<rpm.size(); i++) {
+            sumy2 += rpm.get(i) * rpm.get(i);
+        }
+
+        return ((sumy*sumx2) - (sumx*sumxy))/((n*sumx2) - (sumx*sumx));
     }
 
-    private void initAprilTag() {
-        // Create the AprilTag processor the easy way.
-        aprilTag = AprilTagProcessor.easyCreateWithDefaults();
+    private double calculateB (List<Double> distance, List<Double> rpm) {
+        double sumx = 0;
+        double sumy = 0;
+        double sumxy = 0;
+        double sumx2 = 0;
+        double sumy2 = 0;
+        double n = distance.size();
 
-        // Create the vision portal the easy way.
-        visionPortal = VisionPortal.easyCreateWithDefaults(
-                hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
+        double a = 0;
 
-    }
-
-    private double getDistance(boolean isRed) {
-        List<AprilTagDetection> detections = aprilTag.getDetections();
-        if (isRed) {
-            for (AprilTagDetection det : detections) {
-                if (det.id == 24) {
-                    // compute Euclidean distance from tag pose translation (meters)
-                    return det.ftcPose.range;
-                }
-            }
-        } else {
-            for (AprilTagDetection det : detections) {
-                if (det.id == 20) {
-                    // compute Euclidean distance from tag pose translation (meters)
-                    return det.ftcPose.range;
-                }
-            }
+        for (int i=0; i<distance.size(); i++) {
+            sumx += distance.get(i);
         }
-        return -1.0;
+        for (int i=0; i<rpm.size(); i++) {
+            sumy += rpm.get(i);
+        }
+
+        for (int i=0; i<distance.size();i++) {
+            sumxy += distance.get(i) * rpm.get(i);
+        }
+        for (int i=0; i<distance.size(); i++) {
+            sumx2 += distance.get(i) * distance.get(0);
+        }
+        for (int i=0; i<rpm.size(); i++) {
+            sumy2 += rpm.get(i) * rpm.get(i);
+        }
+
+        return ((n*sumxy) - (sumx*sumy))/((n*sumx2) - (sumx*sumx));
     }
 }
