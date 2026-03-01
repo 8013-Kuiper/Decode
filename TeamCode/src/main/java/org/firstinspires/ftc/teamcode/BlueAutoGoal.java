@@ -65,7 +65,7 @@ public class BlueAutoGoal extends LinearOpMode {
 
         launcher.setRunMode(MotorEx.RunMode.VelocityControl);
         launcher.setVeloCoefficients(20, 0, 0);
-        launcher.setFeedforwardCoefficients(0.35, 0.35);
+        launcher.setFeedforwardCoefficients(0.35, 0.5);
         launcher.setInverted(true);
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
@@ -97,15 +97,22 @@ public class BlueAutoGoal extends LinearOpMode {
         }
         turretRotation.set(0);
 
-        targetRPM = (int) (10.6 * distance + 3100);
+        targetRPM = 2000;
+        //targetRPM = (int) (10.6 * distance);
 
-        while ((launcher.getVelocity()/28*60) < targetRPM-75 || (launcher.getVelocity()/28*60) > targetRPM+75){
-            launcher.setVelocity((((double) targetRPM /60*28)+300));
-            Telemetry.addData("current RPM", launcher.getVelocity()/28*60);
-            Telemetry.addData("target", targetRPM);
-            Telemetry.update(telemetry);
-        }
+        //launcher.setVelocity((((double) targetRPM /60*28)));
 
+        launcher.setVelocity(((133)));
+//       while ((launcher.getVelocity()/28*60) < targetRPM-75 || (launcher.getVelocity()/28*60) > targetRPM+75){
+//            launcher.setVelocity((((double) targetRPM /60*28)));
+//            Telemetry.addData("current RPM", launcher.getVelocity()/28*60);
+//            Telemetry.addData("target", targetRPM);
+//            Telemetry.update(telemetry);
+//        }
+        sleep(1500);
+        Telemetry.addData("current RPM", launcher.getVelocity()/28*60);
+        Telemetry.addData("target", targetRPM);
+        Telemetry.update(telemetry);
         //shoot first
 
         gate.setPosition(0);
@@ -130,16 +137,15 @@ public class BlueAutoGoal extends LinearOpMode {
         sleep(50);
         spin.setPower(0);
 
-        targetRPM = (int) (10.6 * distance + 2500);
-
-        if ((launcher.getVelocity()/28*60) < targetRPM-150 || (launcher.getVelocity()/28*60) > targetRPM+150){
-            while ((launcher.getVelocity() / 28 * 60) < targetRPM - 50 || (launcher.getVelocity() / 28 * 60) > targetRPM + 50) {
-                launcher.setVelocity((((double) targetRPM / 60 * 28) + 300));
-                Telemetry.addData("current RPM", launcher.getVelocity() / 28 * 60);
-                Telemetry.addData("target", targetRPM);
-                Telemetry.update(telemetry);
-            }
+        //targetRPM = (int) (10.6 * distance + 3100);
+        /*
+        while ((launcher.getVelocity()/28*60) < targetRPM-75 || (launcher.getVelocity()/28*60) > targetRPM+75){
+            launcher.setVelocity((((double) targetRPM /60*28)+300));
+            Telemetry.addData("current RPM", launcher.getVelocity()/28*60);
+            Telemetry.addData("target", targetRPM);
+            Telemetry.update(telemetry);
         }
+         */
         sleep(250);
 
         //shoot second
@@ -163,17 +169,16 @@ public class BlueAutoGoal extends LinearOpMode {
         sleep(50);
         spin.setPower(0.0);
 
-        targetRPM = (int) (10.6 * distance + 3100);
+        //targetRPM = (int) (10.6 * distance + 3100);
 
-        if ((launcher.getVelocity()/28*60) < targetRPM-50 || (launcher.getVelocity()/28*60) > targetRPM+50){
-            while ((launcher.getVelocity() / 28 * 60) < targetRPM - 50 || (launcher.getVelocity() / 28 * 60) > targetRPM + 50) {
-                launcher.setVelocity(((((double) targetRPM) / 60.0 * 28.0) + 300));
-                Telemetry.addData("current RPM", launcher.getVelocity() / 28 * 60);
-                Telemetry.addData("target", targetRPM);
-                Telemetry.update(telemetry);
-            }
+        /*
+        while ((launcher.getVelocity()/28*60) < targetRPM-75 || (launcher.getVelocity()/28*60) > targetRPM+75){
+            launcher.setVelocity((((double) targetRPM /60*28)+300));
+            Telemetry.addData("current RPM", launcher.getVelocity()/28*60);
+            Telemetry.addData("target", targetRPM);
+            Telemetry.update(telemetry);
         }
-
+        */
         sleep(250);
 
         //shoot second
@@ -195,7 +200,7 @@ public class BlueAutoGoal extends LinearOpMode {
         }
 
         intake.setPower(-1);
-        //spin.setPosition(1);
+        spin.setPower(1);
 
         follower.followPath(new PathChain(
                 new Path(new BezierLine(
