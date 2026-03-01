@@ -88,7 +88,8 @@ public class BlueAutoGoal extends LinearOpMode {
             follower.update();
         }
 
-        target = (int) (-25*TicksPerDeg);
+
+        target = (int) (-26.5*TicksPerDeg);
 
         turretRotation.setTargetPosition(target);
 
@@ -102,7 +103,7 @@ public class BlueAutoGoal extends LinearOpMode {
 
         //launcher.setVelocity((((double) targetRPM /60*28)));
 
-        launcher.setVelocity(((133)));
+        launcher.setVelocity(((130)));
 //       while ((launcher.getVelocity()/28*60) < targetRPM-75 || (launcher.getVelocity()/28*60) > targetRPM+75){
 //            launcher.setVelocity((((double) targetRPM /60*28)));
 //            Telemetry.addData("current RPM", launcher.getVelocity()/28*60);
