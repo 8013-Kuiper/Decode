@@ -12,6 +12,7 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -29,7 +30,7 @@ public class BlueAutoGoal extends LinearOpMode {
     Motor turretRotation;;
     Servo gate;
     MotorEx launcher;
-    Servo spin;
+    CRServo spin;
     DcMotor intake;
 
     int target;
@@ -48,7 +49,7 @@ public class BlueAutoGoal extends LinearOpMode {
 
         gate = hardwareMap.get(Servo.class, "gate");
         launcher = new MotorEx(hardwareMap, "launcher", 28, 6000);
-        spin = hardwareMap.get(Servo.class, "rotate");
+        spin = hardwareMap.get(CRServo.class, "rotate");
         intake = hardwareMap.get(DcMotor.class, "intake");
 
         turretRotation = new Motor(hardwareMap, "turret", Motor.GoBILDA.RPM_312);
@@ -59,7 +60,7 @@ public class BlueAutoGoal extends LinearOpMode {
         turretRotation.resetEncoder();
         turretRotation.setPositionTolerance(5);
 
-        spin.setPosition(0.5);
+        //spin.setPosition(0.5);
         gate.setPosition(1);
 
         launcher.setRunMode(MotorEx.RunMode.VelocityControl);
@@ -108,25 +109,28 @@ public class BlueAutoGoal extends LinearOpMode {
         //shoot first
 
         gate.setPosition(0);
-        sleep(500);
+        sleep(650);
         gate.setPosition(1);
 
         sleep(500);
 
         //load second
 
-        spin.setPosition(1);
-        intake.setPower(-1);
-        sleep(650);
-        intake.setPower(0);
-        spin.setPosition(0.5);
+        //spin.setPosition(1);
+        spin.setPower(1.0);
+        intake.setPower(-1.0);
+        sleep(1100);
+        intake.setPower(0.0);
+        //spin.setPosition(0.5);
+        //spin.setPower(-.3);
 //        sleep(50);
 //        spin.setPosition(-0.5);
 //        sleep(50);
 //        spin.setPosition(0.5);
-        sleep(250);
+        sleep(50);
+        spin.setPower(0);
 
-        targetRPM = (int) (10.6 * distance + 3100);
+        targetRPM = (int) (10.6 * distance + 2500);
 
         if ((launcher.getVelocity()/28*60) < targetRPM-150 || (launcher.getVelocity()/28*60) > targetRPM+150){
             while ((launcher.getVelocity() / 28 * 60) < targetRPM - 50 || (launcher.getVelocity() / 28 * 60) > targetRPM + 50) {
@@ -146,16 +150,18 @@ public class BlueAutoGoal extends LinearOpMode {
         sleep(500);
 //
         //load third
-        spin.setPosition(1);
-        intake.setPower(-1);
-        sleep(850 );
-        intake.setPower(0);
-        spin.setPosition(0.5);
+        //spin.setPosition(1);
+        spin.setPower(1.0);
+        intake.setPower(-1.0);
+        sleep(1100);
+        intake.setPower(0.0);
+        //spin.setPosition(0.5);
 //        sleep(50);
 //        spin.setPosition(-0.5);
 //        sleep(50);
 //        spin.setPosition(0.5);
-        sleep(250);
+        sleep(50);
+        spin.setPower(0.0);
 
         targetRPM = (int) (10.6 * distance + 3100);
 
@@ -189,7 +195,7 @@ public class BlueAutoGoal extends LinearOpMode {
         }
 
         intake.setPower(-1);
-        spin.setPosition(1);
+        //spin.setPosition(1);
 
         follower.followPath(new PathChain(
                 new Path(new BezierLine(
@@ -203,7 +209,7 @@ public class BlueAutoGoal extends LinearOpMode {
         }
 
         intake.setPower(0);
-        spin.setPosition(0.5);
+        //spin.setPosition(0.5);
 //
 //        follower.followPath(new PathChain(
 //                new Path(new BezierLine(

@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 //@Disabled
 @TeleOp
-public class FinalTeleOp extends OpMode {
+public class IHateRowansCode extends OpMode {
     //Turret constants
     final double driveTeeth = 59;
     final double drivenTeeth = 170;
@@ -30,7 +30,7 @@ public class FinalTeleOp extends OpMode {
 
     //Follower variables
     Pose currentPose = new Pose(72, 72, 0);
-//    Pose currentPose = Constants.currentPose;
+    //    Pose currentPose = Constants.currentPose;
     Follower follower;
     boolean detectBlue = true;
     Pose blueGoal = new Pose(6,135);
@@ -61,15 +61,15 @@ public class FinalTeleOp extends OpMode {
     boolean overrideFlywheel = false;
     boolean overrideTurret = false;
     final long debounceDelay = 200;
-        // Override Turret
-        boolean previousOTstate = false;
-        boolean OTDebounceComplete = true;
-        long OTDebounceStartTime = 0;
+    // Override Turret
+    boolean previousOTstate = false;
+    boolean OTDebounceComplete = true;
+    long OTDebounceStartTime = 0;
 
-        //Override FlyWheel
-        boolean previousFWstate = false;
-        boolean FWDebounceComplete = true;
-        long FWDebounceStartTime = 0;
+    //Override FlyWheel
+    boolean previousFWstate = false;
+    boolean FWDebounceComplete = true;
+    long FWDebounceStartTime = 0;
 
     public void init() {
         //Drive train initialization
@@ -223,32 +223,32 @@ public class FinalTeleOp extends OpMode {
         }
 
         //Override Controls
-            //Override Flywheel
-            if (gamepad2.dpad_down && !previousFWstate && FWDebounceComplete) {
-                overrideFlywheel = !overrideFlywheel;
-                FWDebounceComplete = false;
-                FWDebounceStartTime = System.currentTimeMillis();
-            }
+        //Override Flywheel
+        if (gamepad2.dpad_down && !previousFWstate && FWDebounceComplete) {
+            overrideFlywheel = !overrideFlywheel;
+            FWDebounceComplete = false;
+            FWDebounceStartTime = System.currentTimeMillis();
+        }
 
-            if (!FWDebounceComplete && (System.currentTimeMillis() - FWDebounceStartTime) >= debounceDelay) {
-                FWDebounceComplete = true;
-            }
+        if (!FWDebounceComplete && (System.currentTimeMillis() - FWDebounceStartTime) >= debounceDelay) {
+            FWDebounceComplete = true;
+        }
 
-            previousFWstate = gamepad2.dpad_down;
+        previousFWstate = gamepad2.dpad_down;
 
-            //Override Turret
+        //Override Turret
 
-            if (gamepad2.dpad_up && !previousOTstate && OTDebounceComplete) {
-                overrideTurret = !overrideTurret;
-                OTDebounceComplete = false;
-                OTDebounceStartTime = System.currentTimeMillis();
-            }
+        if (gamepad2.dpad_up && !previousOTstate && OTDebounceComplete) {
+            overrideTurret = !overrideTurret;
+            OTDebounceComplete = false;
+            OTDebounceStartTime = System.currentTimeMillis();
+        }
 
-            if (!OTDebounceComplete && (System.currentTimeMillis() - OTDebounceStartTime) >= debounceDelay) {
-                OTDebounceComplete = true;
-            }
+        if (!OTDebounceComplete && (System.currentTimeMillis() - OTDebounceStartTime) >= debounceDelay) {
+            OTDebounceComplete = true;
+        }
 
-            previousOTstate = gamepad2.dpad_up;
+        previousOTstate = gamepad2.dpad_up;
 
         Telemetry.addData("current Pose", currentPose);
         Telemetry.addData("RPM", launcher.getVelocity()/28*60);
