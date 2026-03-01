@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -32,10 +34,14 @@ public class BlueAutoGoal extends LinearOpMode {
 
     int target;
 
+    double distance = 50;
+
     int targetRPM;
 
     private final Pose startPose = new Pose(27, 132, Math.toRadians(-36));
     private final Pose scorePose = new Pose(58,90, Math.toRadians(135));
+
+    TelemetryManager Telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
     public void runOpMode() {
         Constants.detectBlue = true;
@@ -60,7 +66,6 @@ public class BlueAutoGoal extends LinearOpMode {
         launcher.setVeloCoefficients(20, 0, 0);
         launcher.setFeedforwardCoefficients(0.35, 0.35);
         launcher.setInverted(true);
-
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
 
@@ -91,14 +96,14 @@ public class BlueAutoGoal extends LinearOpMode {
         }
         turretRotation.set(0);
 
-        targetRPM = (int) ((10.6 * 71) + 1800);
+        targetRPM = (int) (10.6 * distance + 3100);
 
-        launcher.setVelocity((((double) targetRPM /60*28)+225));
-
-        sleep(500);
-
-        telemetry.addData("current RPM", launcher.getVelocity()/28*60);
-        telemetry.update();
+        while ((launcher.getVelocity()/28*60) < targetRPM-75 || (launcher.getVelocity()/28*60) > targetRPM+75){
+            launcher.setVelocity((((double) targetRPM /60*28)+300));
+            Telemetry.addData("current RPM", launcher.getVelocity()/28*60);
+            Telemetry.addData("target", targetRPM);
+            Telemetry.update(telemetry);
+        }
 
         //shoot first
 
@@ -112,51 +117,58 @@ public class BlueAutoGoal extends LinearOpMode {
 
         spin.setPosition(1);
         intake.setPower(-1);
-        sleep(750);
-//        spin.setPosition(0);
-//        sleep(100);
+        sleep(650);
         intake.setPower(0);
         spin.setPosition(0.5);
+//        sleep(50);
+//        spin.setPosition(-0.5);
+//        sleep(50);
+//        spin.setPosition(0.5);
+        sleep(250);
 
-        launcher.setVelocity(0);
-        sleep(150);
+        targetRPM = (int) (10.6 * distance + 3100);
 
-        targetRPM = (int) ((10.6 * 71) + 1650);
-
-        launcher.setVelocity((((double) targetRPM /60*28)+150));
-
-        sleep(500);
-
-        telemetry.addData("current RPM", launcher.getVelocity()/28*60);
-        telemetry.addData("target", targetRPM);
-        telemetry.update();
+        if ((launcher.getVelocity()/28*60) < targetRPM-150 || (launcher.getVelocity()/28*60) > targetRPM+150){
+            while ((launcher.getVelocity() / 28 * 60) < targetRPM - 50 || (launcher.getVelocity() / 28 * 60) > targetRPM + 50) {
+                launcher.setVelocity((((double) targetRPM / 60 * 28) + 300));
+                Telemetry.addData("current RPM", launcher.getVelocity() / 28 * 60);
+                Telemetry.addData("target", targetRPM);
+                Telemetry.update(telemetry);
+            }
+        }
+        sleep(250);
 
         //shoot second
-
         gate.setPosition(0);
         sleep(500);
         gate.setPosition(1);
 
         sleep(500);
-
+//
         //load third
         spin.setPosition(1);
-        sleep(750);
+        intake.setPower(-1);
+        sleep(850 );
+        intake.setPower(0);
         spin.setPosition(0.5);
+//        sleep(50);
+//        spin.setPosition(-0.5);
+//        sleep(50);
+//        spin.setPosition(0.5);
+        sleep(250);
 
-        //shoot third
-        launcher.setVelocity(0);
-        sleep(150);
+        targetRPM = (int) (10.6 * distance + 3100);
 
-        targetRPM = (int) ((10.6 * 71) + 1550);
+        if ((launcher.getVelocity()/28*60) < targetRPM-50 || (launcher.getVelocity()/28*60) > targetRPM+50){
+            while ((launcher.getVelocity() / 28 * 60) < targetRPM - 50 || (launcher.getVelocity() / 28 * 60) > targetRPM + 50) {
+                launcher.setVelocity(((((double) targetRPM) / 60.0 * 28.0) + 300));
+                Telemetry.addData("current RPM", launcher.getVelocity() / 28 * 60);
+                Telemetry.addData("target", targetRPM);
+                Telemetry.update(telemetry);
+            }
+        }
 
-        launcher.setVelocity((((double) targetRPM /60*28)+150));
-
-        sleep(500);
-
-        telemetry.addData("current RPM", launcher.getVelocity()/28*60);
-        telemetry.addData("target", targetRPM);
-        telemetry.update();
+        sleep(250);
 
         //shoot second
 
@@ -166,9 +178,9 @@ public class BlueAutoGoal extends LinearOpMode {
 
         sleep(500);
 
-        launcher.set(0);
-        sleep(150);
-        //
+//        launcher.setVelocity(0);
+//        sleep(150);
+
 
         follower.followPath(alignPickup1);
         while (follower.isBusy()){
@@ -192,46 +204,46 @@ public class BlueAutoGoal extends LinearOpMode {
 
         intake.setPower(0);
         spin.setPosition(0.5);
-
-        follower.followPath(new PathChain(
-                new Path(new BezierLine(
-                        new Pose(25, 85, Math.toRadians(180)),
-                        scorePose))),
-        0.8, true);
-
-        while (follower.isBusy()){
-            sleep(50);
-            follower.update();
-        }
-
-        target = (int) (110*TicksPerDeg);
-
-        turretRotation.setTargetPosition(target);
-
-        while (!turretRotation.atTargetPosition()){
-            turretRotation.set(0.1);
-        }
-        turretRotation.set(0);
-
-        spin.setPosition(-1);
-        intake.setPower(1);
-        sleep(150);
-        intake.setPower(0);
-        sleep(250);
-        spin.setPosition(0.5);
 //
-//        follower.followPath(new Path(
-//                new BezierLine(
-//                        scorePose,
-//                        new Pose(48,72)
-//                )
-//        ));
+//        follower.followPath(new PathChain(
+//                new Path(new BezierLine(
+//                        new Pose(25, 85, Math.toRadians(180)),
+//                        scorePose))),
+//        0.8, true);
 //
 //        while (follower.isBusy()){
 //            sleep(50);
 //            follower.update();
 //        }
 //
-//        Constants.currentPose = follower.getPose();
+//        target = (int) (110*TicksPerDeg);
+//
+//        turretRotation.setTargetPosition(target);
+//
+//        while (!turretRotation.atTargetPosition()){
+//            turretRotation.set(0.1);
+//        }
+//        turretRotation.set(0);
+//
+//        spin.setPosition(-1);
+//        intake.setPower(1);
+//        sleep(150);
+//        intake.setPower(0);
+//        sleep(250);
+//        spin.setPosition(0.5);
+////
+////        follower.followPath(new Path(
+////                new BezierLine(
+////                        scorePose,
+////                        new Pose(48,72)
+////                )
+////        ));
+////
+////        while (follower.isBusy()){
+////            sleep(50);
+////            follower.update();
+////        }
+////
+        Constants.currentPose = follower.getPose();
     }
 }

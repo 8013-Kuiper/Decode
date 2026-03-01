@@ -87,7 +87,7 @@ public class FinalTeleOp extends OpMode {
         turretRotation.setInverted(true);
         turretRotation.setPositionCoefficient(-0.05);
         turretRotation.setFeedforwardCoefficients(0.15,0.15);
-//        turretRotation.resetEncoder();
+        turretRotation.resetEncoder();
         turretRotation.setPositionTolerance(5);
 
         spin = hardwareMap.get(Servo.class, "rotate");
@@ -134,7 +134,7 @@ public class FinalTeleOp extends OpMode {
                 double y = 72 + (-botpose_mt2.getPosition().x * 39.37) - 3;
                 Telemetry.addData("MT2 Location:", "(" + x + ", " + y + ")");
 //                Telemetry.addData("Corrected MT2 Location:", "(" + (x + 72) + ", " + (y+72) + ")");
-                currentPose = new Pose(x, y, botpose_mt2.getOrientation().getYaw(AngleUnit.RADIANS));
+                currentPose = new Pose(x, y, botpose_mt2.getOrientation().getYaw(AngleUnit.RADIANS) - Math.toRadians(30));
                 follower.setPose(currentPose);
             } else {
                 currentPose = follower.getPose();
@@ -154,7 +154,7 @@ public class FinalTeleOp extends OpMode {
 
         target = (int) ((180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading()))*TicksPerDeg);
 
-        angleCorrected = (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading())) + count*360;
+        angleCorrected = (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading())) + count*360 + offset;
 
         if (!overrideTurret) {
             if (angleCorrected > 350) {
@@ -170,6 +170,8 @@ public class FinalTeleOp extends OpMode {
             turretRotation.setTargetPosition(target);
 
             turretRotation.set(0.05);
+
+            offset += gamepad2.left_stick_x * 5;
         } else {
             turretRotation.setRunMode(Motor.RunMode.RawPower);
             turretRotation.set(0.25*gamepad2.left_stick_x);
@@ -250,7 +252,9 @@ public class FinalTeleOp extends OpMode {
 
         Telemetry.addData("current Pose", currentPose);
         Telemetry.addData("RPM", launcher.getVelocity()/28*60);
-        Telemetry.addData("Override", overrideTurret);
+        Telemetry.addData("Override", angleCorrected);
+        Telemetry.addData("target RPM", targetRPM);
+        Telemetry.addData("trigger", gamepad2.right_trigger);
         Telemetry.update(telemetry);
     }
 }

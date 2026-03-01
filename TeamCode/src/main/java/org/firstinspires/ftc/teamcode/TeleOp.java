@@ -6,10 +6,11 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
-@Disabled
+//@Disabled
 public class TeleOp extends LinearOpMode {
     DcMotor frontLeft, frontRight, backLeft, backRight;
 
@@ -44,6 +45,7 @@ public class TeleOp extends LinearOpMode {
 
         launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcher.setDirection(DcMotorSimple.Direction.REVERSE);
 
         waitForStart();
 
