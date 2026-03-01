@@ -10,7 +10,6 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -38,7 +37,7 @@ public class FinalTeleOp extends OpMode {
     Pose redGoal = new Pose(144-6, 135);
 
     //Accessory Objects
-    CRServo spin;
+    Servo spin;
     Servo gate;
     MotorEx launcher;
     DcMotor intake;
@@ -91,7 +90,7 @@ public class FinalTeleOp extends OpMode {
         turretRotation.resetEncoder();
         turretRotation.setPositionTolerance(5);
 
-        spin = hardwareMap.get(CRServo.class, "rotate");
+        spin = hardwareMap.get(Servo.class, "rotate");
         launcher = new MotorEx(hardwareMap, "launcher", 28, 6000);
         launcher.setInverted(true);
         intake = hardwareMap.get(DcMotor.class, "intake");
@@ -103,7 +102,7 @@ public class FinalTeleOp extends OpMode {
         launcher.setVeloCoefficients(20, 0, 0);
         launcher.setFeedforwardCoefficients(0.35, 0.5);
 
-
+        spin.setPosition(0.5);
         gate.setPosition(1);
 
         if (detectBlue) {
@@ -201,14 +200,11 @@ public class FinalTeleOp extends OpMode {
 
         //Transfer Controls
         if (gamepad2.a) {
-            spin.setPower(1.0);
-            //spin.setPosition(1.0);
+            spin.setPosition(1.0);
         } else if (gamepad2.b) {
-            //spin.setPosition(0);
-            spin.setPower(-.5);
+            spin.setPosition(0);
         } else {
-            spin.setPower(0);
-            //spin.setPosition(0.5)
+            spin.setPosition(0.5);
         }
 
         if (gamepad2.right_bumper){
