@@ -10,6 +10,7 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -37,7 +38,7 @@ public class FinalTeleOp extends OpMode {
     Pose redGoal = new Pose(144-6, 135);
 
     //Accessory Objects
-    Servo spin;
+    CRServo spin;
     Servo gate;
     MotorEx launcher;
     DcMotor intake;
@@ -90,7 +91,7 @@ public class FinalTeleOp extends OpMode {
         turretRotation.resetEncoder();
         turretRotation.setPositionTolerance(5);
 
-        spin = hardwareMap.get(Servo.class, "rotate");
+        spin = hardwareMap.get(CRServo.class, "rotate");
         launcher = new MotorEx(hardwareMap, "launcher", 28, 6000);
         launcher.setInverted(true);
         intake = hardwareMap.get(DcMotor.class, "intake");
@@ -102,7 +103,7 @@ public class FinalTeleOp extends OpMode {
         launcher.setVeloCoefficients(20, 0, 0);
         launcher.setFeedforwardCoefficients(0.35, 0.5);
 
-        spin.setPosition(0.5);
+        spin.setPower(0);
         gate.setPosition(1);
 
         if (detectBlue) {
@@ -157,6 +158,7 @@ public class FinalTeleOp extends OpMode {
         angleCorrected = (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading())) + count*360 + offset;
 
         if (!overrideTurret) {
+            turretRotation.setRunMode(Motor.RunMode.PositionControl);
             if (angleCorrected > 350) {
                 count --;
             } else if (angleCorrected < -225) {
@@ -171,7 +173,7 @@ public class FinalTeleOp extends OpMode {
 
             turretRotation.set(0.05);
 
-            offset += gamepad2.left_stick_x * 5;
+            offset -= gamepad2.left_stick_x * 5;
         } else {
             turretRotation.setRunMode(Motor.RunMode.RawPower);
             turretRotation.set(0.25*gamepad2.left_stick_x);
@@ -179,9 +181,9 @@ public class FinalTeleOp extends OpMode {
 
         //Side control
         if (gamepad2.dpad_right) {
-            detectBlue = true;
-        } else if (gamepad2.dpad_left) {
             detectBlue = false;
+        } else if (gamepad2.dpad_left) {
+            detectBlue = true;
         }
 
         //Flywheel control
@@ -200,11 +202,11 @@ public class FinalTeleOp extends OpMode {
 
         //Transfer Controls
         if (gamepad2.a) {
-            spin.setPosition(1.0);
+            spin.setPower(1.0);
         } else if (gamepad2.b) {
-            spin.setPosition(0);
+            spin.setPower(-1);
         } else {
-            spin.setPosition(0.5);
+            spin.setPower(0);
         }
 
         if (gamepad2.right_bumper){
