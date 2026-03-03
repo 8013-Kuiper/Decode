@@ -49,7 +49,7 @@ public class FinalTeleOp extends OpMode {
     double angle;
     double angleCorrected;
     int count = 0;
-    int targetRPM;
+    int targetRPM = 3500;
     double distance;
 
     double offset = 0;
@@ -197,8 +197,13 @@ public class FinalTeleOp extends OpMode {
             launcher.setVelocity(gamepad2.right_trigger * (((double) targetRPM /60*28)+225));
         }
 
-        //Target Velocity Calculations
-        targetRPM = (int) (10.6 * distance + 3100);
+        if (gamepad2.dpad_up) {
+            targetRPM += 50;
+        } else if (gamepad2.dpad_down) {
+            targetRPM -= 50;
+        }
+
+        //Target Velocity Calculation
 
         //Transfer Controls
         if (gamepad2.a) {
@@ -226,7 +231,7 @@ public class FinalTeleOp extends OpMode {
 
         //Override Controls
             //Override Flywheel
-            if (gamepad2.dpad_down && !previousFWstate && FWDebounceComplete) {
+            if (gamepad2.y && !previousFWstate && FWDebounceComplete) {
                 overrideFlywheel = !overrideFlywheel;
                 FWDebounceComplete = false;
                 FWDebounceStartTime = System.currentTimeMillis();
@@ -236,19 +241,9 @@ public class FinalTeleOp extends OpMode {
                 FWDebounceComplete = true;
             }
 
-            previousFWstate = gamepad2.dpad_down;
+            previousFWstate = gamepad2.y;
 
             //Override Turret
-
-            if (gamepad2.dpad_up && !previousOTstate && OTDebounceComplete) {
-                overrideTurret = !overrideTurret;
-                OTDebounceComplete = false;
-                OTDebounceStartTime = System.currentTimeMillis();
-            }
-
-            if (!OTDebounceComplete && (System.currentTimeMillis() - OTDebounceStartTime) >= debounceDelay) {
-                OTDebounceComplete = true;
-            }
 
             previousOTstate = gamepad2.dpad_up;
 
