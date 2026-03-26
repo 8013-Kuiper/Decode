@@ -10,6 +10,7 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -37,7 +38,7 @@ public class FinalTeleOp extends OpMode {
     Pose redGoal = new Pose(144-6, 135);
 
     //Accessory Objects
-    Servo spin;
+    CRServo spin;
     Servo gate;
     MotorEx launcher;
     DcMotor intake;
@@ -48,7 +49,7 @@ public class FinalTeleOp extends OpMode {
     double angle;
     double angleCorrected;
     int count = 0;
-    int targetRPM;
+    int targetRPM = 3500;
     double distance;
 
     double offset = 0;
@@ -90,7 +91,7 @@ public class FinalTeleOp extends OpMode {
         turretRotation.resetEncoder();
         turretRotation.setPositionTolerance(5);
 
-        spin = hardwareMap.get(Servo.class, "rotate");
+        spin = hardwareMap.get(CRServo.class, "rotate");
         launcher = new MotorEx(hardwareMap, "launcher", 28, 6000);
         launcher.setInverted(true);
         intake = hardwareMap.get(DcMotor.class, "intake");
@@ -102,7 +103,7 @@ public class FinalTeleOp extends OpMode {
         launcher.setVeloCoefficients(20, 0, 0);
         launcher.setFeedforwardCoefficients(0.35, 0.5);
 
-        spin.setPosition(0.5);
+        spin.setPower(0);
         gate.setPosition(1);
 
         if (detectBlue) {
@@ -157,6 +158,7 @@ public class FinalTeleOp extends OpMode {
         angleCorrected = (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading())) + count*360 + offset;
 
         if (!overrideTurret) {
+            turretRotation.setRunMode(Motor.RunMode.PositionControl);
             if (angleCorrected > 350) {
                 count --;
             } else if (angleCorrected < -225) {
@@ -171,7 +173,7 @@ public class FinalTeleOp extends OpMode {
 
             turretRotation.set(0.05);
 
-            offset += gamepad2.left_stick_x * 5;
+            offset -= gamepad2.left_stick_x * 5;
         } else {
             turretRotation.setRunMode(Motor.RunMode.RawPower);
             turretRotation.set(0.25*gamepad2.left_stick_x);
@@ -179,9 +181,9 @@ public class FinalTeleOp extends OpMode {
 
         //Side control
         if (gamepad2.dpad_right) {
-            detectBlue = true;
-        } else if (gamepad2.dpad_left) {
             detectBlue = false;
+        } else if (gamepad2.dpad_left) {
+            detectBlue = true;
         }
 
         //Flywheel control
@@ -195,16 +197,21 @@ public class FinalTeleOp extends OpMode {
             launcher.setVelocity(gamepad2.right_trigger * (((double) targetRPM /60*28)+225));
         }
 
-        //Target Velocity Calculations
-        targetRPM = (int) (10.6 * distance + 3100);
+        if (gamepad2.dpad_up) {
+            targetRPM += 50;
+        } else if (gamepad2.dpad_down) {
+            targetRPM -= 50;
+        }
+
+        //Target Velocity Calculation
 
         //Transfer Controls
         if (gamepad2.a) {
-            spin.setPosition(1.0);
+            spin.setPower(1.0);
         } else if (gamepad2.b) {
-            spin.setPosition(0);
+            spin.setPower(-1);
         } else {
-            spin.setPosition(0.5);
+            spin.setPower(0);
         }
 
         if (gamepad2.right_bumper){
@@ -224,7 +231,7 @@ public class FinalTeleOp extends OpMode {
 
         //Override Controls
             //Override Flywheel
-            if (gamepad2.dpad_down && !previousFWstate && FWDebounceComplete) {
+            if (gamepad2.y && !previousFWstate && FWDebounceComplete) {
                 overrideFlywheel = !overrideFlywheel;
                 FWDebounceComplete = false;
                 FWDebounceStartTime = System.currentTimeMillis();
@@ -234,19 +241,9 @@ public class FinalTeleOp extends OpMode {
                 FWDebounceComplete = true;
             }
 
-            previousFWstate = gamepad2.dpad_down;
+            previousFWstate = gamepad2.y;
 
             //Override Turret
-
-            if (gamepad2.dpad_up && !previousOTstate && OTDebounceComplete) {
-                overrideTurret = !overrideTurret;
-                OTDebounceComplete = false;
-                OTDebounceStartTime = System.currentTimeMillis();
-            }
-
-            if (!OTDebounceComplete && (System.currentTimeMillis() - OTDebounceStartTime) >= debounceDelay) {
-                OTDebounceComplete = true;
-            }
 
             previousOTstate = gamepad2.dpad_up;
 
