@@ -7,8 +7,10 @@ import com.pedropathing.ftc.FollowerBuilder;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
 import com.pedropathing.ftc.localization.Encoder;
 import com.pedropathing.ftc.localization.constants.ThreeWheelConstants;
+import com.pedropathing.ftc.localization.constants.TwoWheelConstants;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathConstraints;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -36,26 +38,41 @@ public class Constants {
             .xVelocity(47.2589)
             .yVelocity(36.7730);
 
-    public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
-            .forwardTicksToInches(0.00197760)
-            .strafeTicksToInches(0.00197760)
-            .turnTicksToInches(0.00197760)
-            .leftPodY(7.5)
-            .rightPodY(-7.25)
-            .strafePodX(-3)
-            .leftEncoder_HardwareMapName("intake")
-            .rightEncoder_HardwareMapName("frontRight")
+    public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
+            .forwardEncoder_HardwareMapName("frontRight")
             .strafeEncoder_HardwareMapName("backRight")
-            .leftEncoderDirection(Encoder.FORWARD)
-            .rightEncoderDirection(Encoder.REVERSE)
-            .strafeEncoderDirection(Encoder.REVERSE);
+            .IMU_HardwareMapName("imu")
+            .IMU_Orientation(
+                    new RevHubOrientationOnRobot(
+                            RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                            RevHubOrientationOnRobot.UsbFacingDirection.LEFT
+                    )
+            )
+            .forwardPodY(-7.25)
+            .strafePodX(-3)
+            .forwardTicksToInches(0.00197760)
+            .strafeTicksToInches(0.00197760);
+
+//    public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
+//            .forwardTicksToInches(0.00197760)
+//            .strafeTicksToInches(0.00197760)
+//            .turnTicksToInches(0.00197760)
+//            .leftPodY(7.5)
+//            .rightPodY(-7.25)
+//            .strafePodX(-3)
+//            .leftEncoder_HardwareMapName("intake")
+//            .rightEncoder_HardwareMapName("frontRight")
+//            .strafeEncoder_HardwareMapName("backRight")
+//            .leftEncoderDirection(Encoder.FORWARD)
+//            .rightEncoderDirection(Encoder.REVERSE)
+//            .strafeEncoderDirection(Encoder.REVERSE);
 
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 0.8, 0.75);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
-                .threeWheelLocalizer(localizerConstants)
+                .twoWheelLocalizer(localizerConstants)
                 .pathConstraints(pathConstraints)
                 .mecanumDrivetrain(driveConstants)
                 .build();
