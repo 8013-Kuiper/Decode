@@ -14,9 +14,18 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.List;
 
 //@Disabled
 @TeleOp
@@ -54,7 +63,13 @@ public class FinalTeleOp extends OpMode {
 
     double offset = 0;
 
-    Limelight3A limelight;
+    private Position cameraPosition = new Position(DistanceUnit.INCH,
+            1.25, 8.25, 0, 0);
+    private YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES,
+            0, -90, 0, 0);
+
+    private AprilTagProcessor aprilTag;
+    private VisionPortal visionPortal;
 
     TelemetryManager Telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
@@ -79,8 +94,12 @@ public class FinalTeleOp extends OpMode {
         follower.update();
 
         //Limelight
-        limelight = hardwareMap.get(Limelight3A.class, "camera");
-        limelight.pipelineSwitch(0);
+        aprilTag = AprilTagProcessor.easyCreateWithDefaults();
+        visionPortal = VisionPortal.easyCreateWithDefaults(
+                hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
+
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+        builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
 
         //Accessory initialization
         turretRotation = new Motor(hardwareMap, "turret", Motor.GoBILDA.RPM_312);
@@ -125,23 +144,14 @@ public class FinalTeleOp extends OpMode {
 
         Constants.currentPose = currentPose;
 
-        LLResult result = limelight.getLatestResult();
-        double robotYaw = Math.toDegrees(currentPose.getHeading());
-        limelight.updateRobotOrientation(robotYaw);
-        if (result != null && result.isValid()) {
-            Pose3D botpose_mt2 = result.getBotpose();
-            if (botpose_mt2 != null) {
-                double x = 72 - (botpose_mt2.getPosition().y * 39.37) + 3;
-                double y = 72 + (-botpose_mt2.getPosition().x * 39.37) - 3;
-                Telemetry.addData("MT2 Location:", "(" + x + ", " + y + ")");
-//                Telemetry.addData("Corrected MT2 Location:", "(" + (x + 72) + ", " + (y+72) + ")");
-                currentPose = new Pose(x, y, botpose_mt2.getOrientation().getYaw(AngleUnit.RADIANS) - Math.toRadians(30));
-                follower.setPose(currentPose);
-            } else {
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+
+        for (AprilTagDetection detection : currentDetections) {
+            if (detection.id == 20 || detection.id == 24) {
+                currentPose = new Pose(detection.ftcPose.x + 72, detection.ftcPose.y + 72, detection.ftcPose.bearing);
+                        } else {
                 currentPose = follower.getPose();
             }
-        } else {
-            currentPose = follower.getPose();
         }
 
         //Turret Control
