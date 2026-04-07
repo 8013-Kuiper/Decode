@@ -14,13 +14,24 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.List;
 
 //@Disabled
 @TeleOp
 public class FinalTeleOp extends OpMode {
+    DcMotor frontLeft, frontRight, backLeft, backRight;
+
     //Turret constants
     final double driveTeeth = 59;
     final double drivenTeeth = 170;
@@ -30,7 +41,7 @@ public class FinalTeleOp extends OpMode {
     final int turretMaxDeg = 350;
 
     //Follower variables
-    Pose currentPose = new Pose(72, 72, 0);
+    Pose currentPose = new Pose(9.5, 9.5, 0);
 //    Pose currentPose = Constants.currentPose;
     Follower follower;
     boolean detectBlue = true;
@@ -38,7 +49,7 @@ public class FinalTeleOp extends OpMode {
     Pose redGoal = new Pose(144-6, 135);
 
     //Accessory Objects
-    CRServo spin;
+    DcMotor spin;
     Servo gate;
     MotorEx launcher;
     DcMotor intake;
@@ -54,7 +65,12 @@ public class FinalTeleOp extends OpMode {
 
     double offset = 0;
 
-    Limelight3A limelight;
+    private Position cameraPosition = new Position(DistanceUnit.INCH,
+            0, 10.25, 0, 0);
+    private YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES,
+            0, -35, 0, 0);
+    private AprilTagProcessor aprilTag;
+    private VisionPortal visionPortal;
 
     TelemetryManager Telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
@@ -78,20 +94,38 @@ public class FinalTeleOp extends OpMode {
         follower.setStartingPose(currentPose);
         follower.update();
 
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+        backRight = hardwareMap.get(DcMotor.class, "backRight");
+
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
+
         //Limelight
-        limelight = hardwareMap.get(Limelight3A.class, "camera");
-        limelight.pipelineSwitch(0);
+//        limelight = hardwareMap.get(Limelight3A.class, "camera");
+//        limelight.pipelineSwitch(0);
+
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+
+        aprilTag = new AprilTagProcessor.Builder()
+                .setCameraPose(cameraPosition, cameraOrientation)
+                .build();
+
+        builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+        builder.addProcessor(aprilTag);
+        visionPortal = builder.build();
 
         //Accessory initialization
         turretRotation = new Motor(hardwareMap, "turret", Motor.GoBILDA.RPM_312);
-        turretRotation.setRunMode(Motor.RunMode.PositionControl);
+        turretRotation.setRunMode(Motor.RunMode.RawPower);
         turretRotation.setInverted(true);
-        turretRotation.setPositionCoefficient(-0.05);
-        turretRotation.setFeedforwardCoefficients(0.15,0.15);
-        turretRotation.resetEncoder();
-        turretRotation.setPositionTolerance(5);
+//        turretRotation.setPositionCoefficient(-0.058);
+//        turretRotation.setFeedforwardCoefficients(0.15,0.15);
+//        turretRotation.resetEncoder();
+//        turretRotation.setPositionTolerance(5);
 
-        spin = hardwareMap.get(CRServo.class, "rotate");
+        spin = hardwareMap.get(DcMotor.class, "rotate");
         launcher = new MotorEx(hardwareMap, "launcher", 28, 6000);
         launcher.setInverted(true);
         intake = hardwareMap.get(DcMotor.class, "intake");
@@ -100,7 +134,7 @@ public class FinalTeleOp extends OpMode {
 
     public void start() {
         launcher.setRunMode(MotorEx.RunMode.VelocityControl);
-        launcher.setVeloCoefficients(20, 0, 0);
+        launcher.setVeloCoefficients(10, 0.5, 0.5);
         launcher.setFeedforwardCoefficients(0.35, 0.5);
 
         spin.setPower(0);
@@ -117,32 +151,38 @@ public class FinalTeleOp extends OpMode {
         //Drive Train Control
         follower.update();
         currentPose = follower.getPose();
-        follower.setTeleOpDrive(
-                -gamepad1.left_stick_y,
-                -gamepad1.left_stick_x,
-                -gamepad1.right_stick_x,
-                true);
+        double drive = -gamepad1.left_stick_y;
+        double strafe = gamepad1.left_stick_x;
+        double rotate = gamepad1.right_stick_x;
+
+        double frontLeftPower = drive + strafe + rotate;
+        double frontRightPower = drive - strafe - rotate;
+        double backLeftPower = drive - strafe + rotate;
+        double backRightPower = drive + strafe - rotate;
+
+        frontLeft.setPower(frontLeftPower);
+        frontRight.setPower(frontRightPower);
+        backLeft.setPower(backLeftPower);
+        backRight.setPower(backRightPower);
 
         Constants.currentPose = currentPose;
 
-        LLResult result = limelight.getLatestResult();
+//        LLResult result = limelight.getLatestResult();
         double robotYaw = Math.toDegrees(currentPose.getHeading());
-        limelight.updateRobotOrientation(robotYaw);
-        if (result != null && result.isValid()) {
-            Pose3D botpose_mt2 = result.getBotpose();
-            if (botpose_mt2 != null) {
-                double x = 72 - (botpose_mt2.getPosition().y * 39.37) + 3;
-                double y = 72 + (-botpose_mt2.getPosition().x * 39.37) - 3;
+//        limelight.updateRobotOrientation(robotYaw);
+
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        for (AprilTagDetection detection : currentDetections) {
+            if (detection.id == 20 || detection.id ==24){
+                double x = 72 + (detection.robotPose.getPosition().y);
+                double y = 72 + (-detection.robotPose.getPosition().x);
                 Telemetry.addData("MT2 Location:", "(" + x + ", " + y + ")");
 //                Telemetry.addData("Corrected MT2 Location:", "(" + (x + 72) + ", " + (y+72) + ")");
-                currentPose = new Pose(x, y, botpose_mt2.getOrientation().getYaw(AngleUnit.RADIANS) - Math.toRadians(30));
+                currentPose = new Pose(x, y, detection.robotPose.getOrientation().getYaw(AngleUnit.RADIANS));
                 follower.setPose(currentPose);
-            } else {
-                currentPose = follower.getPose();
             }
-        } else {
-            currentPose = follower.getPose();
-        }
+        }   // end for() loop
+        follower.update();
 
         //Turret Control
         if (detectBlue) {
@@ -157,27 +197,23 @@ public class FinalTeleOp extends OpMode {
 
         angleCorrected = (180 - Math.toDegrees(angle) - Math.toDegrees(currentPose.getHeading())) + count*360 + offset;
 
-        if (!overrideTurret) {
-            turretRotation.setRunMode(Motor.RunMode.PositionControl);
-            if (angleCorrected > 350) {
-                count --;
-            } else if (angleCorrected < -225) {
-                count ++;
-            }
-
-            Telemetry.addData("count", count);
-
-            target = (int) (angleCorrected*TicksPerDeg);
-
-            turretRotation.setTargetPosition(target);
-
-            turretRotation.set(0.05);
-
-            offset -= gamepad2.left_stick_x * 5;
-        } else {
-            turretRotation.setRunMode(Motor.RunMode.RawPower);
-            turretRotation.set(0.25*gamepad2.left_stick_x);
+//        turretRotation.setRunMode(Motor.RunMode.PositionControl);
+        if (angleCorrected > 350) {
+            count --;
+        } else if (angleCorrected < -225) {
+            count ++;
         }
+
+        Telemetry.addData("count", count);
+
+//        target = (int) (angleCorrected*TicksPerDeg);
+//
+//        turretRotation.setTargetPosition(target);
+//
+//        turretRotation.set(0.05);
+//
+//        offset -= gamepad2.left_stick_x * 5;
+        turretRotation.set(0.25*gamepad2.left_stick_x);
 
         //Side control
         if (gamepad2.dpad_right) {
@@ -197,11 +233,13 @@ public class FinalTeleOp extends OpMode {
             launcher.setVelocity(gamepad2.right_trigger * (((double) targetRPM /60*28)+225));
         }
 
-        if (gamepad2.dpad_up) {
-            targetRPM += 50;
-        } else if (gamepad2.dpad_down) {
-            targetRPM -= 50;
-        }
+//        if (gamepad2.dpad_up) {
+//            targetRPM += 50;
+//        } else if (gamepad2.dpad_down) {
+//            targetRPM -= 50;
+//        }
+
+        targetRPM = (int) (10.6 * distance + 3100);
 
         //Target Velocity Calculation
 
@@ -215,9 +253,9 @@ public class FinalTeleOp extends OpMode {
         }
 
         if (gamepad2.right_bumper){
-            gate.setPosition(0);
-        } else {
             gate.setPosition(1);
+        } else {
+            gate.setPosition(0);
         }
 
         //Intake Controls
@@ -228,6 +266,10 @@ public class FinalTeleOp extends OpMode {
         } else {
             intake.setPower(0.0);
         }
+//
+//        if (gamepad1.a && gamepad2.a) {
+//            turretRotation.resetEncoder();
+//        }
 
         //Override Controls
             //Override Flywheel
@@ -245,13 +287,11 @@ public class FinalTeleOp extends OpMode {
 
             //Override Turret
 
-            previousOTstate = gamepad2.dpad_up;
-
         Telemetry.addData("current Pose", currentPose);
         Telemetry.addData("RPM", launcher.getVelocity()/28*60);
         Telemetry.addData("Override", angleCorrected);
         Telemetry.addData("target RPM", targetRPM);
-        Telemetry.addData("trigger", gamepad2.right_trigger);
+//        Telemetry.addData("trigger", );
         Telemetry.update(telemetry);
     }
 }
