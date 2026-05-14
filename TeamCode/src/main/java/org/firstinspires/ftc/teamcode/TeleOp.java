@@ -21,9 +21,9 @@ public class TeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            double drive = -gamepad1.left_stick_y;
-            double strafe = gamepad1.left_stick_x;
-            double rotate = gamepad1.right_stick_x;
+            double drive = -gamepad1.left_stick_y * .8;
+            double strafe = gamepad1.left_stick_x * .8;
+            double rotate = gamepad1.right_stick_x * .8;
 
             double frontLeftPower = drive + strafe + rotate;
             double frontRightPower = drive - strafe - rotate;
