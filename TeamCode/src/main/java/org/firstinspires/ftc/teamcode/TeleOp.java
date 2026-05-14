@@ -10,10 +10,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class TeleOp extends LinearOpMode {
     DcMotor frontLeft, frontRight, backLeft, backRight;
 
-    Servo elevator;
-    DcMotorEx launcher;
-    DcMotor intake;
-
     boolean intakeAction = false;
 
     public void runOpMode() {
@@ -21,20 +17,6 @@ public class TeleOp extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
-
-        elevator = hardwareMap.get(Servo.class, "gate");
-        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
-        intake = hardwareMap.get(DcMotor.class, "intake");
-
-        elevator.setPosition(0);
-
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        backLeft.setDirection(DcMotor.Direction.REVERSE);
-
-//        launcher.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         waitForStart();
 
@@ -53,39 +35,6 @@ public class TeleOp extends LinearOpMode {
             backLeft.setPower(backLeftPower);
             backRight.setPower(backRightPower);
 
-            if (gamepad1.a) {
-                elevator.setPosition(1.0);
-            } else if (gamepad1.b) {
-                elevator.setPosition(0);
-            }
-
-            if (gamepad1.right_trigger > 0.1) {
-                launcher.setVelocity(6000 * gamepad1.right_trigger);
-            } else {
-                launcher.setVelocity(0);
-            }
-
-            if (gamepad1.dpad_down) {
-                intakeAction=true;
-            }
-
-            if (intakeAction) {
-                intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                intake.setTargetPosition(500);
-                intake.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                intake.setPower(0.25);
-                if (!intake.isBusy()) {
-                    intakeAction=false;
-                }
-            } else {
-                if (gamepad1.left_trigger > 0.1) {
-                    intake.setPower(1.0);
-                } else if (gamepad1.left_bumper) {
-                    intake.setPower(-1.0);
-                } else {
-                    intake.setPower(0.0);
-                }
-            }
         }
     }
 }
