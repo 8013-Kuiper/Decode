@@ -8,15 +8,19 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
-    DcMotor frontLeft, frontRight, backLeft, backRight;
-
-    boolean intakeAction = false;
+    DcMotor frontLeft, frontRight, rearLeft, rearRight;
 
     public void runOpMode() {
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-        backRight = hardwareMap.get(DcMotor.class, "backRight");
+        rearLeft = hardwareMap.get(DcMotor.class, "rearLeft");
+        rearRight = hardwareMap.get(DcMotor.class, "rearRight");
+
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        rearRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        rearLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
         waitForStart();
 
@@ -25,16 +29,15 @@ public class TeleOp extends LinearOpMode {
             double strafe = gamepad1.left_stick_x;
             double rotate = gamepad1.right_stick_x;
 
-            double frontLeftPower = drive + strafe + rotate;
+            double frontLeftPower  = drive + strafe + rotate;
             double frontRightPower = drive - strafe - rotate;
-            double backLeftPower = drive - strafe + rotate;
-            double backRightPower = drive + strafe - rotate;
+            double rearLeftPower   = drive - strafe + rotate;
+            double rearRightPower  = drive + strafe - rotate;
 
             frontLeft.setPower(frontLeftPower);
             frontRight.setPower(frontRightPower);
-            backLeft.setPower(backLeftPower);
-            backRight.setPower(backRightPower);
-
+            rearLeft.setPower(rearLeftPower);
+            rearRight.setPower(rearRightPower);
         }
     }
 }
