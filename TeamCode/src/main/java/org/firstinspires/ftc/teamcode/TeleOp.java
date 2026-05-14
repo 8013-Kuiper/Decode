@@ -2,25 +2,22 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
-    DcMotor frontLeft, frontRight, rearLeft, rearRight;
+    DcMotor frontLeft, frontRight, backLeft, backRight;
 
     public void runOpMode() {
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        rearLeft = hardwareMap.get(DcMotor.class, "rearLeft");
-        rearRight = hardwareMap.get(DcMotor.class, "rearRight");
+        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+        backRight = hardwareMap.get(DcMotor.class, "backRight");
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        rearRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        rearLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-
+        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         waitForStart();
 
@@ -36,8 +33,8 @@ public class TeleOp extends LinearOpMode {
 
             frontLeft.setPower(frontLeftPower);
             frontRight.setPower(frontRightPower);
-            rearLeft.setPower(rearLeftPower);
-            rearRight.setPower(rearRightPower);
+            backLeft.setPower(rearLeftPower);
+            backRight.setPower(rearRightPower);
         }
     }
 }
