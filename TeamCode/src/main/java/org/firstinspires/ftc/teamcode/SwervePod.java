@@ -227,8 +227,8 @@ public class SwervePod {
             }
         }
 
-        turnServo.setPower(power);
-        podRPM = power * (SERVO_RPM / GEAR_RATIO);
+        turnServo.setPower(-power);
+        podRPM = -power * (SERVO_RPM / GEAR_RATIO);
     }
     public void zeroPod(double power) {
         if (getContVoltage() > 1.3) {
